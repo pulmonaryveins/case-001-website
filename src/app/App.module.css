@@ -1,0 +1,36 @@
+.shell {
+  min-height: 100%;
+}
+
+.status {
+  position: fixed;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: var(--z-navigation);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.status h1 {
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+  margin-bottom: var(--space-2);
+}
+
+.spacer {
+  height: 100vh;
+}
+
+.scene {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box {
+  width: 80px;
+  height: 80px;
+  background: var(--color-evidence-red);
+}

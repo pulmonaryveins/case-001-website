@@ -1,0 +1,20 @@
+.polaroid {
+  display: inline-block;
+  background: #f5f2ea;
+  padding: var(--space-2) var(--space-2) var(--space-4);
+  box-shadow: var(--shadow-mid);
+  transform: rotate(var(--polaroid-rotation, 0deg));
+}
+
+.image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.caption {
+  font-family: var(--font-hand);
+  color: var(--color-text-on-paper);
+  text-align: center;
+  margin-top: var(--space-2);
+}

@@ -1,0 +1,10 @@
+.stamp {
+  display: inline-block;
+  font-family: var(--font-display);
+  color: var(--color-evidence-red);
+  border: 2px solid var(--color-evidence-red);
+  padding: var(--space-1) var(--space-3);
+  transform: rotate(var(--stamp-rotation, -8deg));
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}

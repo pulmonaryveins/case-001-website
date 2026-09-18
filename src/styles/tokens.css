@@ -1,0 +1,98 @@
+/*
+  CASE 0926 — design tokens
+  Single source of truth for color, spacing, depth, type, shadow, light,
+  motion. Components must consume these variables, never hardcode values.
+*/
+
+:root {
+  /* ---------- COLOR: environment ---------- */
+  --color-bg-void: #0a0908;
+  --color-bg-charcoal: #16140f;
+  --color-bg-wood: #241c14;
+
+  /* ---------- COLOR: paper / evidence ---------- */
+  --color-paper: #ece4d3;
+  --color-paper-aged: #d8cdb1;
+  --color-paper-shadow: #4a4231;
+
+  /* ---------- COLOR: text ---------- */
+  --color-text-primary: #ece4d3;
+  --color-text-muted: #9c9280;
+  --color-text-on-paper: #241f16;
+
+  /* ---------- COLOR: accent ---------- */
+  --color-evidence-red: #b3231c;
+  --color-evidence-red-dim: #7a1712;
+
+  /* ---------- COLOR: light ---------- */
+  --color-light-warm: #ffb673;
+  --color-light-cool: #6f8fa8;
+
+  /* ---------- SPACING (4px base scale) ---------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  /* ---------- Z-INDEX LAYERS ----------
+     background < environment < desk < paper < photos < strings < pins
+     < foreground < navigation < modal
+  */
+  --z-background: 0;
+  --z-environment: 10;
+  --z-desk: 20;
+  --z-paper: 30;
+  --z-photos: 40;
+  --z-strings: 50;
+  --z-pins: 60;
+  --z-foreground: 70;
+  --z-navigation: 80;
+  --z-modal: 90;
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --font-display: 'Special Elite', 'Courier New', monospace;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-hand: 'Caveat', cursive;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 3.5rem;
+
+  /* ---------- SHADOW LEVELS ---------- */
+  --shadow-contact: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-low: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-mid: 0 6px 16px rgba(0, 0, 0, 0.4);
+  --shadow-high: 0 16px 40px rgba(0, 0, 0, 0.5);
+
+  /* ---------- LIGHTING ---------- */
+  --light-direction-x: -20%;
+  --light-direction-y: -30%;
+  --light-falloff: radial-gradient(
+    ellipse at var(--light-direction-x) var(--light-direction-y),
+    rgba(255, 182, 115, 0.18),
+    transparent 60%
+  );
+  --vignette: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+
+  /* ---------- TRANSITION DURATIONS ---------- */
+  --duration-fast: 0.15s;
+  --duration-base: 0.35s;
+  --duration-slow: 0.6s;
+  --duration-scene: 1.2s;
+
+  /* ---------- EASING ---------- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1);
+}

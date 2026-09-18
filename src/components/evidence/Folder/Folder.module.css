@@ -1,0 +1,15 @@
+.folder {
+  position: relative;
+  background: var(--color-bg-wood);
+  box-shadow: var(--shadow-high);
+}
+
+.tab {
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+  padding: var(--space-2) var(--space-4);
+}
+
+.contents {
+  padding: var(--space-4);
+}

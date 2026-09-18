@@ -1,0 +1,11 @@
+.paper {
+  position: relative;
+  background: var(--color-paper);
+  color: var(--color-text-on-paper);
+  box-shadow: var(--shadow-mid);
+  transform: rotate(var(--paper-rotation, 0deg));
+}
+
+.aged {
+  background: var(--color-paper-aged);
+}

@@ -1,0 +1,16 @@
+.pin {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: var(--shadow-contact);
+  z-index: var(--z-pins);
+}
+
+.red {
+  background: var(--color-evidence-red);
+}
+
+.neutral {
+  background: var(--color-text-muted);
+}
