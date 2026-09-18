@@ -1,10 +1,14 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
+import type { PaperMaterialAsset } from '../../../types/portfolio';
 import styles from './Paper.module.css';
 
 export interface PaperProps extends HTMLAttributes<HTMLDivElement> {
   children?: ReactNode;
   aged?: boolean;
   rotation?: number;
+  treatment?: 'clean' | 'worn' | 'torn';
+  variant?: 'clean' | 'aged' | 'torn' | 'note' | 'document' | 'photoBacking' | 'map' | 'manila';
+  material?: PaperMaterialAsset;
 }
 
 /**
@@ -16,17 +20,33 @@ export function Paper({
   children,
   aged = false,
   rotation = 0,
+  treatment = 'clean',
+  variant,
+  material,
   className,
   style,
   ...rest
 }: PaperProps) {
+  const resolvedVariant =
+    variant ??
+    (treatment === 'torn' ? 'torn' : aged ? 'aged' : treatment === 'worn' ? 'note' : 'clean');
+  const materialStyle = {
+    ...style,
+    '--paper-rotation': `${rotation}deg`,
+    // Omitted when no scan is supplied, so the shared grain token applies.
+    ...(material?.textureSrc && { '--paper-texture': `url("${material.textureSrc}")` }),
+    '--paper-edge-mask': material?.edgeMaskSrc ? `url("${material.edgeMaskSrc}")` : 'none',
+    '--paper-wear-image': material?.wearOverlaySrc ? `url("${material.wearOverlaySrc}")` : 'none',
+  } as CSSProperties;
   return (
     <div
-      className={[styles.paper, aged && styles.aged, className].filter(Boolean).join(' ')}
-      style={{ ...style, ['--paper-rotation' as string]: `${rotation}deg` }}
+      className={[styles.paper, styles[resolvedVariant], className].filter(Boolean).join(' ')}
+      style={materialStyle}
       {...rest}
     >
-      {children}
+      <div className={styles.surface} data-masked={Boolean(material?.edgeMaskSrc)}>
+        <div className={styles.content}>{children}</div>
+      </div>
     </div>
   );
 }

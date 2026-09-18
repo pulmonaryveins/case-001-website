@@ -14,6 +14,53 @@ body {
   outline-offset: 2px;
 }
 
+/*
+ * Page scrollbar: the native one, restyled as a case-file index rail. An 8px
+ * gutter of void black holds a 2px charcoal rail; the thumb is a narrow,
+ * nearly square slip of dim evidence red (active/progress), a shade brighter
+ * under the pointer. Pure CSS: Lenis still owns scrolling, nothing animates.
+ */
+html::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: var(--color-bg-void);
+}
+html::-webkit-scrollbar-track {
+  background: linear-gradient(
+    to right,
+    transparent 3px,
+    rgb(22 20 15 / 0.9) 3px 5px,
+    transparent 5px
+  );
+}
+html::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  border: 2px solid transparent;
+  border-radius: 1px;
+  background: var(--color-evidence-red-dim) padding-box;
+}
+html::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:active {
+  background-color: color-mix(
+    in srgb,
+    var(--color-evidence-red-dim) 75%,
+    var(--color-evidence-red)
+  );
+}
+html::-webkit-scrollbar-button,
+html::-webkit-scrollbar-corner {
+  display: none;
+  background: var(--color-bg-void);
+}
+/* Firefox (no WebKit pseudo-elements): thin native bar in the same colours.
+   Kept out of Blink, where these properties would disable the rules above. */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-evidence-red-dim) var(--color-bg-void);
+  }
+}
+
 ::selection {
   background: var(--color-evidence-red-dim);
   color: var(--color-text-primary);

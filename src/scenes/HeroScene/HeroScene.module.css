@@ -1,0 +1,615 @@
+.scene {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  padding: var(--space-16) var(--space-24) var(--space-24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--hero-room-light), var(--color-bg-charcoal);
+}
+.scene[data-rendering='fallback'] {
+  flex-direction: column;
+}
+/* Fallback reads top to bottom: board, the scroll prompt, then the desk it leads to. */
+.scene[data-rendering='fallback'] .footer {
+  position: static;
+  order: 1;
+  margin-top: var(--space-8);
+  justify-content: center;
+}
+.scene[data-rendering='fallback'] .deskPanel {
+  order: 2;
+  margin-top: var(--space-8);
+}
+.scene[data-rendering='3d'] {
+  min-height: max(100svh, var(--hero-environment-height));
+  background: var(--color-bg-void);
+}
+.scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--hero-vignette);
+  pointer-events: none;
+  z-index: var(--z-foreground);
+}
+
+/* Nothing is visible until fonts and (on desktop) the 3D environment are ready. */
+.scene[data-intro='pending'] [data-stage] {
+  opacity: 0;
+}
+[data-evidence] {
+  translate: 0 var(--enter-y, 0px);
+}
+
+/* ---------- HUD ---------- */
+.hud,
+.footer {
+  position: absolute;
+  left: var(--space-8);
+  right: var(--space-8);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  font-family: var(--font-display);
+  font-size: var(--hero-micro-size);
+  letter-spacing: var(--hero-tracking);
+  color: var(--color-text-muted);
+  opacity: 0.8;
+  z-index: var(--z-navigation);
+}
+/* Stacked top-left: the top-right corner belongs to the lamp. */
+.hud {
+  top: var(--space-6);
+  right: auto;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.footer {
+  bottom: var(--space-4);
+  align-items: flex-end;
+}
+.footer p {
+  text-align: center;
+}
+.scrollLine {
+  display: block;
+  margin: var(--space-3) auto 0;
+  width: var(--hero-line);
+  height: var(--space-6);
+  background: linear-gradient(var(--color-text-muted), transparent);
+}
+
+/* ---------- Environment + board plane ---------- */
+.environment {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-background);
+}
+.board {
+  position: relative;
+  width: min(100%, var(--hero-board-width));
+  aspect-ratio: 1.6;
+  flex-shrink: 0;
+  border: var(--hero-board-inset) solid var(--hero-frame);
+  /* --hero-board-light is two layers: radial lamp pool + linear falloff. */
+  background: var(--hero-board-light), var(--hero-cork-texture), var(--hero-board);
+  background-size: cover, cover, auto, auto;
+  background-blend-mode: normal, normal, var(--hero-cork-blend), normal;
+  box-shadow: var(--hero-board-shadow);
+}
+/* In 3D the overlay is a fixed 1000x625 board-space plane, projected onto the cork. */
+.scene[data-rendering='3d'] .board {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--hero-overlay-width);
+  height: var(--hero-overlay-height);
+  aspect-ratio: auto;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  transform-origin: 0 0;
+  transform: var(--plane-registration);
+  z-index: var(--z-paper);
+}
+/* Desk surface: the same projected-plane treatment, lying on the wood. */
+.deskPlane {
+  display: none;
+}
+.scene[data-rendering='3d'] .deskPlane {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--desk-overlay-width);
+  height: var(--desk-overlay-height);
+  transform-origin: 0 0;
+  transform: var(--plane-registration);
+  /* Lets the dossier cover rise off the desk with the camera's true perspective. */
+  transform-style: preserve-3d;
+  z-index: var(--z-paper);
+  pointer-events: none;
+}
+/* Fallback (mobile / no WebGL): the desk continues below the board in normal flow. */
+.deskPanel {
+  position: relative;
+  width: min(100%, var(--hero-board-width));
+  margin-top: var(--space-16);
+  border-top: var(--space-2) solid var(--hero-frame);
+  background:
+    radial-gradient(ellipse at 90% 0%, rgb(255 208 150 / 0.16), transparent 65%), var(--desk-wood);
+  box-shadow: inset 0 18px 30px rgb(0 0 0 / 0.55);
+}
+/* Reduced-motion cut to the desk; transparent unless the journey timeline fades it. */
+.cut {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg-void);
+  opacity: 0;
+  pointer-events: none;
+  z-index: var(--z-foreground);
+}
+.caseStep {
+  display: inline-grid;
+}
+.caseStep > span {
+  grid-area: 1 / 1;
+}
+[data-case-step='02'],
+[data-case-step='03'] {
+  opacity: 0;
+}
+.placed {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+}
+
+/* ---------- Light-driven depth ----------
+   --lit / --warm / --sx / --sy / --light-angle come from the lamp model
+   (environment/lighting.ts). --elev is height above the cork in board px.
+   Every physical piece gets the same three layers, in this order:
+     1. sheet thickness  - a hard sub-pixel edge on the side away from the lamp
+     2. contact shadow   - tight, concentrated, where the piece meets what's below
+     3. cast shadow      - softer and displaced away from the lamp by elevation
+   Stacks read because each upper piece casts onto the piece beneath it. */
+.flush,
+.lifted,
+.photo,
+.visualEvidence,
+.pin,
+.subjectTape,
+.stack,
+.mounted {
+  --lit-filter: brightness(var(--lit, 1)) sepia(var(--warm, 0))
+    drop-shadow(-0.4px 0.6px 0 var(--paper-edge))
+    drop-shadow(
+      calc(var(--sx, -0.3) * var(--elev) * 0.25px)
+        calc(var(--sy, 0.3) * var(--elev) * 0.25px + 0.4px) calc(0.6px + var(--elev) * 0.35px)
+        rgb(var(--shadow-ink) / calc(0.32 + var(--elev) * 0.04))
+    )
+    drop-shadow(
+      calc(var(--sx, -0.3) * var(--elev) * 1.3px)
+        calc(var(--sy, 0.3) * var(--elev) * 1.3px + var(--elev) * 0.35px)
+        calc(1px + var(--elev) * 1.5px) rgb(var(--shadow-ink) / calc(0.12 + var(--elev) * 0.04))
+    );
+}
+/* Level 1: ordinary sheet flat on the cork. */
+.flush {
+  --elev: var(--elev-paper);
+  --paper-depth-shadow: var(--lit-filter);
+}
+/* Large mounted sheet (map): heavy stock, pressed flat. */
+.mounted {
+  --elev: calc(var(--elev-paper) * 0.8);
+  --paper-depth-shadow: var(--lit-filter);
+}
+/* Under-sheet of a stack: flat, covered by what sits on it. */
+.stack {
+  --elev: var(--elev-paper);
+  --paper-depth-shadow: var(--lit-filter);
+}
+/* Level 4: note lying on top of its photo stack. */
+.lifted {
+  --elev: var(--elev-stack);
+  --paper-depth-shadow: var(--lit-filter);
+}
+/* Level 3/4: the subject photo sits on two sheets; discipline photos on cork. */
+.photo {
+  --elev: var(--elev-stack);
+  filter: var(--lit-filter);
+}
+.visualEvidence {
+  --elev: var(--elev-photo);
+  filter: var(--lit-filter);
+}
+/* Level 0: tape pressed flat; no paper edge. */
+.subjectTape {
+  --elev: var(--elev-flush);
+  --paper-edge: transparent;
+  filter: var(--lit-filter);
+}
+.pin {
+  --elev: var(--elev-pin);
+  --paper-edge: transparent;
+  filter: var(--lit-filter);
+}
+
+/* ---------- Location map (supporting, beneath all evidence) ---------- */
+.mapSheet {
+  z-index: calc(var(--z-paper) - 2);
+  --paper-padding: var(--space-3) var(--space-3) var(--space-2);
+}
+.mapSheet img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: var(--space-1) 0;
+  opacity: 0.92;
+}
+.mapLabel,
+.mapCoords {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--hero-micro-size);
+  letter-spacing: var(--hero-tracking);
+  color: var(--color-text-muted);
+}
+.mapLabel {
+  padding-bottom: var(--space-1);
+  border-bottom: var(--hero-line) solid rgb(156 146 128 / 0.25);
+}
+.mapCoords {
+  text-align: right;
+  opacity: 0.7;
+}
+
+/* ---------- Case heading ---------- */
+.caseHeading {
+  z-index: var(--z-paper);
+  --paper-padding: var(--space-3) var(--space-6) var(--space-4);
+  --paper-ink: var(--hero-ink);
+}
+.fileTag,
+.status,
+.evidenceNumber,
+.detail {
+  font-family: var(--font-display);
+  font-size: var(--hero-micro-size);
+  letter-spacing: var(--hero-tracking);
+}
+.fileTag,
+.evidenceNumber {
+  color: var(--hero-ink-faint);
+}
+.caseHeading h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--hero-title-size);
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  margin: var(--space-1) 0 var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: 2px solid var(--color-evidence-red-dim);
+  opacity: 0.92;
+}
+.subjectLine {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--hero-tracking);
+}
+.status em {
+  font-style: normal;
+  color: var(--color-evidence-red-dim);
+}
+
+/* ---------- Subject ---------- */
+.subject {
+  z-index: var(--z-photos);
+}
+.backing {
+  position: absolute;
+  inset: -3% -5% -2% -3%;
+}
+/* Bottom sheet of the subject stack, peeking out lower-left. */
+.backingUnder {
+  position: absolute;
+  inset: 4% -2% -6% -8%;
+}
+.photo {
+  position: relative;
+}
+/* Photographic stock: dirty white, fine grain, faint lamp-facing edge. */
+.photo figure,
+.visualEvidence {
+  background-color: var(--color-paper-photo);
+  background-image: var(--paper-grain);
+  background-size: var(--paper-grain-size);
+  box-shadow:
+    inset -1px 1px 0 var(--paper-edge-light),
+    inset 1px -1px 0 var(--paper-edge-shade),
+    inset 0 0 10px var(--paper-edge-wear);
+}
+.photo figure {
+  display: block;
+  padding: var(--space-2) var(--space-2) var(--space-3);
+}
+.photo figure::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--hero-photo-highlight);
+  pointer-events: none;
+}
+.photo img,
+.visualEvidence img {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+}
+.photo img {
+  aspect-ratio: 0.95;
+  object-position: 55% 50%;
+  filter: grayscale(0.85) contrast(1.05);
+}
+.photo figcaption {
+  font-family: var(--font-hand);
+  font-weight: 500;
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--hero-ink);
+  padding: var(--space-2) 0 0;
+}
+.subjectStamp {
+  position: absolute;
+  top: 60%;
+  left: 8%;
+  font-size: var(--text-sm);
+  opacity: 0.7;
+  mix-blend-mode: multiply;
+}
+.subjectTape {
+  position: absolute;
+  left: 30%;
+  top: -3%;
+  width: 40%;
+  height: var(--space-6);
+  z-index: var(--z-pins);
+  transform: rotate(-3deg);
+  /* Translucent paper tape: the photo border shows through; faint lamp sheen. */
+  background-color: var(--hero-tape);
+  background-image:
+    linear-gradient(200deg, rgb(255 246 222 / 0.24), transparent 55%), var(--hero-tape-image),
+    var(--paper-grain);
+  background-size:
+    100% 100%,
+    100% 100%,
+    128px;
+  clip-path: polygon(
+    1% 10%,
+    4% 0,
+    97% 3%,
+    100% 14%,
+    98% 40%,
+    100% 68%,
+    97% 100%,
+    3% 95%,
+    0 72%,
+    2% 44%
+  );
+}
+
+/* ---------- Discipline evidence ---------- */
+.branch {
+  z-index: var(--z-paper);
+}
+.note {
+  --paper-padding: var(--hero-note-padding);
+  --paper-ink: var(--hero-ink);
+}
+.branch h2 {
+  font-family: var(--font-display);
+  font-size: var(--hero-note-size);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: var(--space-2) 0 var(--space-2);
+  max-width: 10ch;
+  opacity: 0.92;
+}
+.branch h2::after {
+  content: '';
+  display: block;
+  width: 55%;
+  margin-top: var(--space-1);
+  border-bottom: 1.5px solid var(--color-evidence-red-dim);
+  opacity: 0.8;
+}
+.detail {
+  display: block;
+  border-top: var(--hero-line) solid var(--material-edge);
+  padding-top: var(--space-2);
+  line-height: 1.5;
+  opacity: 0.85;
+}
+.evidenceNumber {
+  display: block;
+}
+.visualEvidence {
+  position: absolute;
+  width: 96%;
+  left: 36%;
+  top: -18%;
+  padding: 6px 6px var(--space-5, 20px);
+  transform: rotate(4deg);
+}
+.visualEvidence img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.15;
+  object-fit: cover;
+  filter: grayscale(0.4) sepia(0.15);
+}
+.uiux .visualEvidence {
+  left: 30%;
+  top: 22%;
+  transform: rotate(5deg);
+}
+.graphic .visualEvidence {
+  left: -30%;
+  top: 20%;
+  transform: rotate(-6deg);
+}
+.video .visualEvidence {
+  left: -22%;
+  top: 30%;
+  width: 110%;
+  transform: rotate(-2deg);
+}
+
+/* ---------- String + pins ---------- */
+.connections {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-strings);
+  pointer-events: none;
+}
+.pins {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-pins);
+  pointer-events: none;
+}
+/* Thread sits barely off the cork: a short, tight shadow, no glow. */
+.string {
+  filter: brightness(var(--lit, 1))
+    drop-shadow(
+      calc(var(--sx, -0.3) * 1.1px) calc(var(--sy, 0.3) * 1.1px + 0.5px) 0.6px
+        rgb(var(--shadow-ink) / 0.4)
+    );
+}
+.string path {
+  stroke-width: 1.5;
+  opacity: 0.85;
+}
+/* Round head: lamp highlight upper-right, core shade lower-left. */
+.pin {
+  position: absolute;
+  width: var(--hero-pin-size);
+  height: var(--hero-pin-size);
+  transform: translate(-50%, -50%);
+  background: var(--hero-pin-light);
+  box-shadow:
+    inset -1px 1px 1px rgb(255 196 176 / 0.35),
+    inset 1.5px -1.5px 2px rgb(40 4 2 / 0.55);
+}
+
+/* ---------- Annotation ---------- */
+.annotation {
+  z-index: var(--z-paper);
+  --paper-padding: var(--space-3) var(--space-4);
+  --paper-ink: var(--hero-ink);
+}
+.annotation p {
+  font-family: var(--font-hand);
+  font-weight: 500;
+  font-size: var(--text-xl);
+  line-height: 1.05;
+  text-align: center;
+}
+.annotation p::after {
+  content: '';
+  display: block;
+  width: 40%;
+  margin: var(--space-1) auto 0;
+  border-bottom: 1.5px solid var(--color-evidence-red-dim);
+}
+
+/* ---------- Intro streak ---------- */
+.streak {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--hero-streak);
+  opacity: 0;
+  z-index: var(--z-foreground);
+}
+
+/* ---------- 3D registered sizes (board px space) ---------- */
+.scene[data-rendering='3d'] .caseHeading h1 {
+  font-size: var(--hero-registered-title-size);
+}
+.scene[data-rendering='3d'] .branch h2 {
+  font-size: var(--hero-registered-note-size);
+}
+
+/* ---------- Tablet fallback: flat board, desktop composition ---------- */
+@media (max-width: 1024px) {
+  .scene[data-rendering='fallback'] {
+    padding: var(--space-24) var(--space-6);
+  }
+  .footer > span {
+    display: none;
+  }
+  .footer {
+    justify-content: center;
+  }
+}
+
+/* ---------- Mobile: recomposed vertical board, no WebGL ---------- */
+@media (max-width: 640px) {
+  .scene {
+    padding: var(--space-16) var(--space-3) var(--space-24);
+  }
+  .hud {
+    left: var(--space-4);
+    right: var(--space-4);
+    top: var(--space-6);
+  }
+  .board {
+    aspect-ratio: auto;
+    height: var(--hero-mobile-board-height);
+    border-width: var(--space-2);
+  }
+  .caseHeading {
+    --paper-padding: var(--space-3);
+  }
+  .caseHeading h1 {
+    font-size: var(--text-2xl);
+  }
+  .subject {
+    max-width: var(--hero-subject-max-width);
+    left: 50%;
+    margin-left: calc(min(var(--w), var(--hero-subject-max-width)) / -2);
+  }
+  .photo figcaption {
+    font-size: var(--text-base);
+  }
+  .note {
+    --paper-padding: var(--space-4) var(--space-2) var(--space-3);
+  }
+  .branch h2 {
+    font-size: var(--text-base);
+  }
+  .detail {
+    font-size: var(--hero-mobile-detail-size);
+    letter-spacing: 0;
+  }
+  .annotation p {
+    font-size: var(--text-lg);
+  }
+  .flush,
+  .lifted,
+  .photo,
+  .pin {
+    --elev: 1.5;
+  }
+  /* Strings run beneath the stacked evidence; pins stay on top. */
+  .connections {
+    z-index: calc(var(--z-paper) - 1);
+  }
+}

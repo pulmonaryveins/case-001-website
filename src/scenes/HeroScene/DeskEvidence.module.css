@@ -1,0 +1,39 @@
+.desk {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* Depth + lamp response come from the shared .evidence-light utility. */
+.desk,
+.dossierSlot {
+  transform-style: preserve-3d;
+}
+.paper {
+  --elev: var(--elev-paper);
+}
+
+.looseSheet {
+  position: absolute;
+  left: 31%;
+  top: 37%;
+  width: 24%;
+  aspect-ratio: 0.72;
+}
+.dossierSlot {
+  position: absolute;
+  left: 35%;
+  top: 23.5%;
+  width: 34%;
+}
+/* Flat fallback panel (mobile / no WebGL): the folder in flow, full width, readable. */
+.desk[data-layout='panel'] .dossierSlot {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 84%;
+  margin: 8% auto;
+  container-type: inline-size;
+}
+.desk[data-layout='panel'] .looseSheet {
+  display: none;
+}

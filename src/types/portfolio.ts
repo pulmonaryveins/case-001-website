@@ -1,19 +1,83 @@
+export interface PhysicalImageAsset {
+  src: string;
+  srcSet?: string;
+  width: number;
+  height: number;
+}
+
+export interface PaperMaterialAsset {
+  textureSrc?: string;
+  edgeMaskSrc?: string;
+  wearOverlaySrc?: string;
+}
+
+export interface InvestigationIntro {
+  caseNumber: string;
+  eyebrow: string;
+  subject: string;
+  status: string;
+  question: string;
+  annotation: string;
+  scrollPrompt: string;
+  photoSrc: string;
+  photoAlt: string;
+  photoSrcSet?: string;
+  /** Closed file on the desk; opening it belongs to the About scene. */
+  dossier: {
+    title: string;
+    classification: string;
+    status: string;
+  };
+  /** Country-level only: no city or personal location. */
+  location: {
+    label: string;
+    coordinates: string;
+    alt: string;
+  };
+  branches: {
+    id: string;
+    number: string;
+    title: string;
+    detail: string;
+    evidenceSrc: string;
+    evidenceAlt: string;
+    evidenceSrcSet?: string;
+  }[];
+}
+
+/**
+ * Subject dossier (About). Every personal field is a placeholder until real
+ * data is supplied in `src/data/profile.ts`; scenes never hardcode it.
+ */
 export interface Profile {
   name: string;
   role: string;
   location: string;
-  summary: string;
+  /** 2-4 short sentences. */
+  summary: string[];
   disciplines: string[];
-  skills: string[];
+  skills: SkillGroup[];
   education: EducationEntry[];
-  photoSrc: string;
+  portrait: EvidenceImage;
+}
+
+export interface EvidenceImage {
+  src: string;
+  alt: string;
+  isPlaceholder: boolean;
+}
+
+export interface SkillGroup {
+  label: string;
+  items: string[];
 }
 
 export interface EducationEntry {
   institution: string;
-  credential: string;
-  startYear: number;
-  endYear: number | 'present';
+  program: string;
+  period: string;
+  /** City-level at most, e.g. "Cebu, Philippines". */
+  location: string;
 }
 
 export interface Experience {

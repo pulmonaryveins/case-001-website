@@ -1,15 +1,285 @@
 # CASE 0926 — Architecture
 
-This is the handoff doc between the scaffolding pass (Claude) and per-scene
-implementation (Codex). Read this before writing any scene. It records
-decisions already made so they don't get re-litigated or drift per scene.
+This is the single source of truth for CASE 0926 — both **what** we're
+building (creative direction) and **how** it's implemented (technical
+architecture). Read this before writing any scene. It records decisions
+already made so they don't get re-litigated or drift per scene.
+
+---
+
+# Creative Direction
+
+## Core Concept
+
+CASE 0926 is a cinematic, scroll-driven detective portfolio.
+
+The visitor is investigating an initially UNKNOWN SUBJECT. As they scroll,
+evidence gradually reveals that the subject is a multidisciplinary creative
+working across:
+
+- Frontend Development
+- UI/UX Design
+- Graphic Design
+- Video Editing
+
+Narrative progression:
+
+MYSTERY → EVIDENCE → IDENTITY → EXPERIENCE → WORK → CREDENTIALS → CONTACT →
+CASE SOLVED
+
+The site should feel like: **"A cinematic investigation that happens to be
+a portfolio."** Not: "A normal portfolio with detective styling." The
+investigation itself is the storytelling and navigation system.
+
+## Visual Direction
+
+The visual language should feel: serious, mysterious, cinematic,
+investigative, noir-inspired, professional, tactile, physical, carefully
+composed.
+
+Avoid: horror/Halloween aesthetics, cartoon detective styling,
+cyberpunk/neon, excessive sepia, excessive red, steampunk, glassmorphism,
+generic SaaS UI, generic card layouts, unnecessary clutter, generic AI
+detective aesthetics.
+
+The environment can be detailed while the actual interface remains minimal.
+
+## References
+
+**Primary visual reference:**
+[Hamada's Case (Portfolio 2025)](<https://www.behance.net/gallery/229543797/Hamadas-Case-(Portfolio-2025)>)
+— inspiration for evidence-board composition, paper/folder treatment,
+photographs, red evidence string, push pins, physical layering, handwritten
+annotations, investigative storytelling, lighting and shadows. **Do not
+directly copy the reference** — CASE 0926 must remain an original
+composition.
+
+**Secondary spatial/interaction references:**
+[3d.killianherzer.com](https://3d.killianherzer.com/),
+[killianherzer.com](https://killianherzer.com/) — inspiration for spatial
+storytelling, object interaction, cinematic transitions, physical-media
+interaction. These references do NOT mean the site should use real-time
+3D everywhere. The project remains DOM/SVG-first for content; the Hero's
+physical environment is now explicitly approved for real 3D.
+
+## Physical World System
+
+Portfolio information should appear as physical evidence whenever
+practical.
+
+| Content        | Physical form                              |
+| -------------- | ------------------------------------------ |
+| About          | Subject dossier                            |
+| Skills         | Evidence notes / annotations               |
+| Education      | Document / record                          |
+| Experience     | Evidence timeline                          |
+| Projects       | Physical case folders                      |
+| Project images | Photographs / Polaroids / printed evidence |
+| Video projects | VHS tapes                                  |
+| Video player   | CRT television                             |
+| Certificates   | Physical documents                         |
+| Awards         | Medals / badges                            |
+| Contact        | Business card / final case folder          |
+| Progress       | Red evidence string / case progress        |
+| Navigation     | Subtle case index / investigation HUD      |
+
+Avoid generic digital cards when a physical metaphor makes sense.
+
+## Color / Materials
+
+**Primary environment:** near-black, charcoal, dark neutral brown, muted
+gray.
+**Paper:** aged cream, off-white.
+**Accent — evidence red:** communicates evidence connections, string, push
+pins, annotations, stamps, active state, investigation progress. Do not
+make the entire interface red.
+
+**Materials:** cork, paper, photographs, folders, masking tape, clips,
+string, cardboard, worn desk surfaces. Textures should remain restrained
+enough to preserve readability.
+
+## Lighting
+
+Lighting is a major part of the art direction.
+
+**Primary light:** warm tungsten / detective desk lamp.
+**Optional secondary light:** subtle cool ambient/moonlight. CRT scenes may
+introduce localized cool screen illumination.
+
+Objects within a scene must respect a consistent lighting direction. Use
+directional shadows, contact shadows, light falloff, restrained highlights,
+overlap, occlusion. Avoid random glows, excessive backdrop blur, constantly
+animated shadows, lighting without a believable source. Lighting should
+create physical depth.
+
+## Composition / 2.5D Depth
+
+Treat each scene like an After Effects composition. Conceptual hierarchy
+(not every scene needs every layer — every layer must have a compositional
+purpose):
+
+camera → foreground props → atmosphere → pins/string → photographs →
+documents/notes → board/desk objects → environment → background lighting
+
+Create depth through scale, overlap, perspective, shadows, parallax,
+lighting, occlusion.
+
+Use 2.5D techniques first: HTML, CSS, SVG, optimized image assets, CSS
+perspective, GSAP transforms for content. Three.js/R3F/Drei are approved
+specifically for cinematic physical environment rendering in the Hero.
+WebGL is not the default for future scenes: use it only when physical 3D
+materially improves the experience and that scene's scope calls for it.
+
+## Interaction Philosophy
+
+**Primary interaction:** scroll = investigate.
+**Secondary interaction:** click/tap = inspect.
+**Hover:** may provide restrained physical feedback only.
+
+Do not require WASD, free camera, mandatory puzzles, hidden required
+content, or complicated game controls.
+
+Scrolling may behave like a cinematic camera using: push, pull, pan, slight
+tilt, horizontal traversal, diagonal traversal, depth/parallax, focus
+illusions. Vertical scroll may drive horizontal/spatial movement.
+Transitions should feel like moving through one continuous investigation,
+not unrelated webpage sections fading in and out.
+
+Motion should feel deliberate, weighted, restrained, cinematic. Avoid
+bouncy SaaS animation, elastic motion, constant floating, excessive cursor
+effects, animation for animation's sake. **Stillness is intentional.**
+
+## Red Evidence String
+
+The recurring storytelling device — semantic, not merely decorative.
+
+At the beginning, the unknown subject is connected to Frontend Development,
+UI/UX Design, Graphic Design, and Video Editing. As the investigation
+progresses, the string may connect identity, experience, projects, creative
+disciplines, credentials, progress. By the conclusion, the evidence network
+should visually communicate that all of these disciplines belong to the
+same person.
+
+## Scene Sequence
+
+**01 — Intro.** Dark opening followed by a short cinematic reveal into CASE 0926.
+
+**02 — Hero / Investigation Board.** Unknown subject at the center of a
+cork/evidence board. Four primary evidence branches: Frontend Developer,
+UI/UX Designer, Graphic Designer, Video Editor. Use red strings, push pins,
+photographs, papers, and investigative annotations. Potential labels: `CASE
+0926` / `SUBJECT: UNKNOWN` / `STATUS: UNDER INVESTIGATION`. Purpose is
+curiosity, not immediate identity disclosure.
+
+**03 — Board → Desk transition.** Scrolling pushes toward the board and
+follows the investigation into the detective workspace. Use restrained
+parallax/depth — should feel like continuous camera movement rather than a
+section fade.
+
+**04 — Subject Dossier / About.** A physical case folder beneath a tungsten
+lamp opens through scroll progress, revealing photograph, name, location,
+description, disciplines, skills, education. This is where the unknown
+subject becomes identified.
+
+**05 — Experience.** The dossier closes; work history becomes a physical
+evidence timeline across the desk, with the red string as the timeline.
+Entries may be employee IDs, photographs, business cards, memos, invoices,
+badges, documents. Vertical scrolling may drive horizontal/diagonal camera
+traversal.
+
+**06 — Project Archive.** Projects appear as unopened physical case
+folders, showing project name, category, year, preview photograph.
+Categories: frontend/coding, UI/UX, graphic design.
+
+**07 — Project Case File.** Opening a folder reveals title, description,
+role, tools, year/status, links, attached screenshots/photographs.
+Additional imagery may be inspected through a modal/lightbox such as "View
+All Evidence."
+
+**08 — Video Evidence.** A physical-media scene: CRT television, VCR, VHS
+tapes. The visitor selects a tape; it activates/inserts; the CRT briefly
+shows static; the selected video plays within the television. Video
+controls must remain accessible. Do not preload the complete video library.
+
+**09 — Awards / Certificates.** Certificates, medals, badges, credentials
+appear as physical evidence. Important documents must remain
+readable/inspectable.
+
+**10 — Contact.** Final folder containing contact information and a
+business card. An old telephone or related desk prop may support the
+composition. Possible CTA: `START A NEW CASE` / `START A CONVERSATION`.
+
+**11 — Case Solved.** The final folder closes. Potential copy: `CASE 0926`
+/ `INVESTIGATION COMPLETE` / "Thank you for investigating." / "The next
+case could be yours." / `GET IN TOUCH`. The environment eventually fades
+into darkness.
+
+## Hero Design Foundation
+
+The first implementation milestone is Scene 01 (Intro) + Scene 02 (Hero /
+Investigation Board). The Hero establishes the visual system used by later
+scenes.
+
+It should contain: unknown central subject, cork/evidence board, four
+occupational evidence branches, red evidence strings, push pins, layered
+papers, photographs, handwritten annotations, `CASE 0926` identification,
+serious cinematic atmosphere, tungsten lighting, physically consistent
+shadows, restrained texture/grain, minimal UI, subtle "Scroll to
+Investigate" indicator.
+
+After the intro animation finishes, the Hero should become mostly still.
+Do not compensate for weak composition with additional animation.
+
+## Responsive Philosophy
+
+**Desktop:** full cinematic composition.
+**Tablet:** reduce peripheral props, parallax, decorative layers, shadow
+complexity.
+**Mobile:** recompose rather than simply shrinking the desktop canvas.
+Preserve narrative, primary evidence, readability, interactions. Remove
+decorative evidence before meaningful evidence.
+
+## Creative Priority
+
+When making design decisions, prioritize in this order: composition,
+lighting, typography, physical layering, storytelling, motion, interaction,
+decorative effects.
+
+Performance remains a first-class design requirement — the cinematic
+presentation must never make the experience feel sluggish (see Performance
+rules, below).
+
+## Codex Working Rule
+
+Before implementing any scene:
+
+1. Read this entire ARCHITECTURE.md.
+2. Inspect the current repository implementation.
+3. Inspect existing primitives, tokens, utilities, and scene patterns.
+4. Follow the current scene-specific prompt.
+5. Implement only the requested scene and minimum supporting changes.
+6. Do not proactively implement future scenes.
+7. Reuse established visual/animation patterns instead of rebuilding them.
+8. Preserve the architecture unless the current task genuinely requires an
+   extension.
+9. Run typecheck, lint, and production build after implementation.
+10. Fix errors introduced by the implementation before finishing.
+
+Scene-specific prompts override creative details for that scene, but
+should not silently override core architecture/performance constraints.
+
+---
+
+# Technical Architecture
 
 ## Stack
 
 React 19 + TypeScript + Vite. GSAP + ScrollTrigger for animation. Lenis for
 smooth scroll. Zustand for the one small shared store. Lucide React for
 conventional icons only. No router (single-page vertical scroll). No
-Three.js / R3F / Framer Motion — not part of this architecture.
+Three.js + React Three Fiber + Drei for the Hero physical environment,
+camera and lighting. HTML/CSS owns readable content and conventional UI;
+SVG owns evidence strings. No Framer Motion or competing animation system.
 
 Package manager: npm (package-lock.json is the lockfile of record — don't
 introduce yarn/pnpm lockfiles alongside it).
@@ -46,6 +316,43 @@ Global tokens live in `src/styles/tokens.css` and are consumed via `var(--*)`
 — never hardcode a color, spacing, shadow, z-index, duration, or easing
 value in a component file. If a token you need doesn't exist yet, add it to
 `tokens.css`, don't inline it.
+
+Three.js world dimensions, PBR material colors and render budgets live in
+`HeroScene/environment/config.ts`; these are environment settings rather
+than CSS declarations. CSS overlay dimensions match its board pixel plane.
+
+## Hero hybrid environment
+
+Layering: section background → lazy WebGL environment → registered DOM
+evidence board → HUD. The decorative canvas ignores pointer events and is
+hidden from accessibility APIs. Evidence remains in the original DOM tree,
+including headings, photograph, discipline papers, notes, SVG strings and
+pins. Important text never becomes a WebGL texture.
+
+`HeroEnvironmentCanvas` composes `CameraRig`, `LightingRig`, `Room`,
+`InvestigationBoard3D`, `Desk3D`, `Lamp3D` and `ForegroundProps3D`.
+The board body/frame, desk, lamp, folders, cup and pencils are simple PBR
+geometry placeholders; no third-party models are downloaded. Existing local
+wood/cork raster slots can supply final materials later.
+
+CameraRig projects the board's 1000 × 625 pixel plane using its world matrix
+and the perspective camera's view/projection matrices into a CSS matrix3d.
+The same projection updates during camera entrance and viewport resize.
+GSAP animates the camera inside the shared context lifecycle; resizing
+reframes without replaying the entrance. No user camera controls.
+
+One warm, inverse-square spotlight sits just outside the lamp opening and
+aims along the shade axis toward the board. A dim cool hemisphere provides
+fill. Environmental geometry casts/receives real shadows; DOM papers retain
+CSS contact shadows and a matching static light falloff. DOM evidence does
+not participate in WebGL shadow maps or depth occlusion.
+
+Rendering is demand-only, invalidated by entrance, resize and scene changes.
+Desktop DPR is capped at 1.5 with one 1024px shadow map. Tablet caps DPR at 1,
+omits foreground props and disables shadows. Mobile does not mount/import
+the canvas and uses the recomposed DOM board. Lazy-load/render/context-loss
+failures retain the DOM board. Reduced motion skips the camera entrance.
+Textures, geometry and materials follow R3F disposal on unmount.
 
 ## Component pattern
 
@@ -102,13 +409,35 @@ changing the shape unless the type itself needs to change (update
 
 ## Where Codex starts
 
-Scaffolding is complete and verified (typecheck, lint, build all pass).
-Next: implement `src/scenes/HeroScene/` per MASTER PROJECT BRIEF section 9
-("Hero / Investigation Board"), using the evidence primitives already
-built. Once Hero is done, `src/app/App.tsx`'s dev shell gets replaced by
-the real scene stack — don't do that until at least Hero + the
-Hero→Desk transition exist, so there's no broken in-between state.
+Scaffolding is complete and verified.
 
-Build one scene at a time (see brief section 25). Don't scaffold future
-scenes' content ahead of need — the reserved folders/README stubs are
-enough until a scene's turn comes.
+Before implementing a scene, Codex must read this entire ARCHITECTURE.md,
+inspect the current implementation, and then follow the scene-specific
+prompt.
+
+Completed milestones:
+
+SCENE 01 — INTRO
+SCENE 02 — HERO / INVESTIGATION BOARD
+SCENE 03 — BOARD → DESK TRANSITION (ends on the closed dossier)
+SCENE 04 — SUBJECT DOSSIER / ABOUT (opens the dossier)
+
+Next milestone: SCENE 05 — EXPERIENCE.
+
+How the room works (read before extending it):
+
+- One pinned, scrubbed GSAP timeline in `HeroScene` drives
+  `cameraState.travel` (0 = board, 1 = desk). `environment/cameraPath.ts`
+  turns it into a single crane/dolly move; `CameraRig` samples it each frame.
+- Readable content stays DOM. Each DOM layer that belongs to the room is a
+  `RegisteredPlane` (board, desk) projected by the same camera, so it can't
+  drift from the 3D scene in either scroll direction. Add new surfaces as
+  planes rather than animating DOM separately.
+- The closed dossier is the `Dossier` primitive on the desk plane
+  (`DeskEvidence`). Open it there; its type scales with its own width, so it
+  renders the same on the desk plane and the mobile panel.
+- DOM lighting on any plane comes from `environment/lighting.ts`
+  (`evidenceLight(u, v, surface)`), driven by the same lamp config as three.js.
+
+Build and review one milestone at a time. Do not scaffold or implement
+future scene content ahead of need.

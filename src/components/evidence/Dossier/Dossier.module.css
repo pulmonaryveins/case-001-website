@@ -1,0 +1,246 @@
+/*
+ * Letter-size folder lying flat (cover ~9 x 11.75). Everything below derives
+ * from --open (0 closed -> 1 open), written by the owning scene timeline:
+ *   --a            cover angle around the spine
+ *   face lighting  each face's brightness vs the upper-right lamp
+ *                  (lamp direction in the hinge plane ~ (0.64 right, 0.77 up))
+ *   --elev         cast shadow shrinks while a face is lifted off the stack
+ *   lift shadow    the standing cover darkens the desk to its left
+ *   page shade     pages sit in the cover's shadow until it clears them
+ */
+.dossier {
+  --a: calc(var(--open, 0) * 180deg);
+  --dossier-lit: var(--lit, 1);
+  --base-warm: var(--warm, 0);
+  --ink-wear: var(--ink-wear-texture);
+  position: relative;
+  aspect-ratio: 0.77;
+  transform-style: preserve-3d;
+}
+.back,
+.pages,
+.cover,
+.liftShadow {
+  position: absolute;
+  inset: 0;
+}
+/* The fold: closed, it is the folder's rounded left edge; open, a soft crease
+   with ambient occlusion where the cover meets the back panel. */
+.spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1.6%;
+  width: 3.2%;
+  transform: translateZ(4.5px);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(40 26 12 / calc(0.1 + 0.18 * var(--open, 0))) 42%,
+    rgb(20 12 4 / calc(0.18 + 0.2 * var(--open, 0))) 50%,
+    rgb(255 230 190 / calc(0.05 + 0.07 * var(--open, 0))) 56%,
+    transparent
+  );
+}
+.back {
+  /* Heavier stock sitting on the desk: firmer contact than a loose sheet. */
+  --elev: calc(var(--elev-paper) * 1.4);
+}
+/* File stocks sit closer to the lamp than the board: a touch more tungsten. */
+.back,
+.sheet,
+.page,
+.face {
+  --warm: calc(var(--base-warm) + 0.1);
+}
+.pages {
+  transform-style: preserve-3d;
+  transform: translateZ(1px);
+}
+/* Under-sheet and top page: only their edges show while the file is closed. */
+.sheet,
+.page {
+  position: absolute;
+  --elev: 0.6;
+}
+/* Second sheet: a slightly offset edge inside the back panel, never covering it. */
+.sheet {
+  inset: 2.2% 2.4% 2.4% 3.4%;
+}
+.page {
+  /* Inside the back panel's margins, so manila frames the page once open. */
+  inset: 3% 3.6% 3.4% 4.2%;
+  --paper-base: var(--paper-ivory);
+  container-type: inline-size;
+  --paper-ink: var(--hero-ink, var(--color-text-on-paper));
+}
+.pagesShade {
+  position: absolute;
+  inset: 0 -2% -2% 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(8 5 2 / 0.75), rgb(8 5 2 / 0.35) 70%, rgb(8 5 2 / 0.2));
+  opacity: calc(max(0, cos(var(--a))) * 0.95);
+}
+.liftShadow {
+  right: 100%;
+  left: -100%;
+  transform-origin: 100% 50%;
+  transform: translateZ(0.5px) scaleX(calc(sin(var(--a)) * 0.55 + 0.001));
+  background: linear-gradient(270deg, rgb(8 5 2 / 0.55), transparent 85%);
+  opacity: calc(sin(var(--a)) * 0.85);
+  pointer-events: none;
+}
+/* Cover: hinged on the left spine, lifted just above the pages. */
+.cover {
+  transform-style: preserve-3d;
+  transform-origin: 0 50%;
+  transform: translateZ(4px) rotateY(calc(var(--a) * -1));
+}
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  container-type: inline-size;
+}
+.outside {
+  --lit: calc(var(--dossier-lit) * (0.62 + 0.38 * max(0, cos(var(--a)) - 0.83 * sin(var(--a)))));
+  --elev: calc(var(--elev-stack) * max(0, cos(var(--a))));
+  --paper-padding: 14% 9% 9%;
+  --paper-ink: var(--hero-ink, var(--color-text-on-paper));
+}
+.inside {
+  transform: rotateY(180deg);
+  --lit: calc(var(--dossier-lit) * (0.62 + 0.38 * max(0, 0.83 * sin(var(--a)) - cos(var(--a)))));
+  --elev: calc(var(--elev-note) * max(0, -1 * cos(var(--a))));
+  /* The identification sheet runs up to the top edge so the clip can grip both. */
+  --paper-padding: 0.8% 4% 5% 6%;
+  --paper-ink: var(--hero-ink, var(--color-text-on-paper));
+}
+
+/* ---------- Paper clip: one clip, seen from its two sides ----------
+   It grips the cover's top edge near the spine together with the
+   identification sheet clipped inside. The outside face shows the long outer
+   loop, the inside face the short inner loop; both show the same bend above
+   the edge. Each is a child of its face, so the clip turns with the cover.
+   The inside half is flipped back into cover coordinates so both halves
+   share one x position and one bend. */
+.clipOutside,
+.clipInside {
+  top: 0;
+  left: 3.4%;
+  backface-visibility: hidden;
+}
+.clipOutside {
+  transform: translateZ(0.4px);
+}
+/* Faces the inside of the cover without mirroring the drawing, so both
+   halves keep the same x position and the same bend in cover space. */
+.clipInside {
+  transform: translateZ(-0.4px) scaleZ(-1);
+}
+
+/* ---------- Cover print ---------- */
+.label {
+  width: 78%;
+  margin-inline: auto;
+  /* Pasted label: its own thin paper edge and a tight shadow, not the cover's. */
+  --elev: var(--elev-flush);
+  --paper-padding: 7% 8%;
+  --paper-ink: var(--hero-ink, var(--color-text-on-paper));
+}
+.caseNumber,
+.title {
+  display: block;
+  font-family: var(--font-display);
+  text-align: center;
+}
+.caseNumber {
+  font-size: 9.2cqw;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  padding-bottom: 4%;
+  border-bottom: 2px solid var(--color-evidence-red-dim);
+}
+.title {
+  margin-top: 5%;
+  font-size: 3.6cqw;
+  letter-spacing: 0.22em;
+}
+.stamp {
+  margin: 12% auto 0;
+  width: fit-content;
+  font-size: 5cqw;
+  opacity: 0.84;
+  mix-blend-mode: multiply;
+}
+.status {
+  mix-blend-mode: multiply;
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 7%;
+  padding-top: 3%;
+  border-top: 1px solid rgb(58 42 24 / 0.3);
+  font-family: var(--font-display);
+  font-size: 2.85cqw;
+  letter-spacing: 0.14em;
+}
+.status span {
+  opacity: 0.65;
+}
+
+/* ---------- Stacked (portrait / mobile) ----------
+   The cover lifts off the top edge toward the viewer and away; the inside
+   and the profile page then read top to bottom as full-width sheets. */
+.dossier[data-layout='stacked'] {
+  --type-scale: 1.75;
+  aspect-ratio: auto;
+  min-height: calc(100cqw / 0.77);
+  perspective: 1400px;
+}
+.dossier[data-layout='stacked'] .pages {
+  position: relative;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  transform: none;
+  opacity: min(1, calc(var(--open, 0) * 2));
+}
+.dossier[data-layout='stacked'] .sheet,
+.dossier[data-layout='stacked'] .spine,
+.dossier[data-layout='stacked'] .pagesShade,
+.dossier[data-layout='stacked'] .liftShadow {
+  display: none;
+}
+.dossier[data-layout='stacked'] .page {
+  position: relative;
+  inset: auto;
+}
+.dossier[data-layout='stacked'] .back {
+  height: calc(100cqw / 0.77);
+  bottom: auto;
+}
+.dossier[data-layout='stacked'] .cover {
+  bottom: auto;
+  aspect-ratio: 0.77;
+  transform-origin: 50% 0;
+  transform: translateZ(4px) rotateX(calc(var(--open, 0) * 105deg));
+  opacity: calc(1 - max(0, var(--open, 0) - 0.5) * 2);
+}
+.dossier[data-layout='stacked'] .outside {
+  --lit: var(--dossier-lit);
+}
+.dossier[data-layout='stacked'] .insidePage {
+  --paper-padding: 5%;
+  --elev: var(--elev-paper);
+}
+
+/* Pieces lying on a face or page are already lit by it: keep their own
+   contact/cast shadows, but don't apply the lamp a second time. */
+.face :global(.evidence-light),
+.page :global(.evidence-light) {
+  --lit: 1;
+  --warm: 0;
+}

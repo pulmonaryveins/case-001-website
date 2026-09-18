@@ -11,8 +11,13 @@
   --color-bg-wood: #241c14;
 
   /* ---------- COLOR: paper / evidence ---------- */
-  --color-paper: #ece4d3;
-  --color-paper-aged: #d8cdb1;
+  /* Physical paper palette: warm ivory, never digital white. */
+  --color-paper: #dcd3bd;
+  --color-paper-photo: #e2dccd;
+  --color-paper-aged: #cfc2a3;
+  --color-paper-backing: #c7c2b4;
+  --color-paper-map: #191916;
+  --color-paper-manila: #a58d66;
   --color-paper-shadow: #4a4231;
 
   /* ---------- COLOR: text ---------- */
@@ -58,7 +63,7 @@
   /* ---------- TYPOGRAPHY ---------- */
   --font-display: 'Special Elite', 'Courier New', monospace;
   --font-body: 'Inter', system-ui, sans-serif;
-  --font-hand: 'Caveat', cursive;
+  --font-hand: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -95,4 +100,98 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Hero materials: raster slots, restrained fallbacks, static light and depth. */
+:root {
+  --hero-board: #7a6246;
+  --hero-environment-height: 740px;
+  --hero-overlay-width: 1000px;
+  --hero-overlay-height: 625px;
+  --desk-overlay-width: 1024px;
+  --desk-overlay-height: 640px;
+  --desk-wood:
+    repeating-linear-gradient(
+      178deg,
+      rgb(255 225 185 / 0.035) 0 2px,
+      transparent 2px 9px,
+      rgb(0 0 0 / 0.05) 9px 11px,
+      transparent 11px 23px
+    ),
+    linear-gradient(180deg, #3d2b1c, #24190f);
+  --hero-registered-title-size: 2.6rem;
+  --hero-registered-note-size: 1.25rem;
+  --hero-frame: #30291f;
+  --hero-ink-faint: #8a806b;
+  --hero-tape: rgb(212 196 156 / 0.55);
+  --hero-board-light:
+    radial-gradient(ellipse at 100% 5%, #ffd49350, transparent 65%),
+    linear-gradient(110deg, #080b0a80, transparent 72%);
+  --hero-room-light: radial-gradient(ellipse at 89% 15%, #ae79413b, transparent 58%);
+  --hero-vignette: radial-gradient(
+    ellipse 75% 80% at 45% 48%,
+    transparent 55%,
+    #0a090840 80%,
+    #0a0908b0 100%
+  );
+  --hero-board-shadow: -25px 35px 65px #00000099, inset 0 0 0 1px #c4b78928;
+  --hero-pin-light: radial-gradient(circle at 72% 22%, #e2866c, #b3231c 45%, #611810 95%);
+  --hero-board-width: 1280px;
+  --hero-board-inset: 12px;
+  --hero-note-padding: clamp(12px, 1.5vw, 22px);
+  --hero-title-size: clamp(2rem, 4.1vw, 4rem);
+  --hero-note-size: clamp(1rem, 1.7vw, 1.55rem);
+  --hero-micro-size: 0.6rem;
+  --hero-tracking: 0.16em;
+  --hero-line: 1px;
+  --hero-pin-size: 13px;
+  --hero-streak: linear-gradient(115deg, transparent 40%, #dbc09655 49%, transparent 57%);
+  --hero-mobile-board-height: 900px;
+  --hero-subject-max-width: 205px;
+  --hero-mobile-detail-size: 0.5rem;
+  --material-edge: #66533330;
+  --material-crease: linear-gradient(
+    96deg,
+    transparent 47%,
+    #6b5a3e0a 49%,
+    #fff8de42 50%,
+    transparent 51%
+  );
+  --hero-cork-texture: url('../assets/textures/cork-grain.svg');
+  --hero-paper-surface: #d3c7aa;
+  --hero-ink: #39382d;
+  --paper-clean-finish: linear-gradient(110deg, #fff9e71c, transparent 65%);
+  --paper-aged-finish: radial-gradient(ellipse at 0% 100%, #856b3324, transparent 48%);
+  --paper-note-finish: linear-gradient(96deg, transparent 49%, #68563a0c 50%, transparent 51%);
+  --paper-photo-finish: linear-gradient(155deg, #ffffff33, transparent 55%);
+  --paper-document-base: #e0d7c0;
+  --paper-worn-radius: 1px 3px 2px 1px;
+  --paper-damaged-radius: 1px 2px 9px 3px;
+  --paper-wear-opacity: 0.3;
+  --paper-contact-filter: drop-shadow(-2px 3px 2px #00000065);
+  --hero-photo-highlight: linear-gradient(140deg, #fff8df21, transparent 55%);
+  --hero-tape-edge: 1px 2px 1px 3px;
+
+  /* ---------- Physical evidence system ----------
+     Grain: static seamless tile, rasterised once. Elevation (board px above
+     the cork) drives contact + cast shadows; direction comes from the lamp. */
+  --paper-grain: url('../assets/textures/paper-grain.svg');
+  --paper-grain-size: 256px;
+  --folder-fiber: url('../assets/textures/folder-fiber.svg');
+  --ink-wear-texture: url('../assets/textures/ink-wear.svg');
+  /* Dossier stocks: one restrained family, told apart by tone. */
+  --paper-ivory: #e2d8c1;
+  --paper-offwhite-aged: #d8ccb1;
+  --elev-flush: 0.35;
+  --elev-paper: 1.1;
+  --elev-note: 2;
+  --elev-photo: 3.2;
+  --elev-stack: 4.2;
+  --elev-pin: 2.6;
+  --paper-edge: rgb(66 50 32 / 0.55);
+  --paper-edge-light: rgb(255 238 208 / 0.4);
+  --paper-edge-shade: rgb(58 42 24 / 0.2);
+  --paper-edge-wear: rgb(118 90 52 / 0.12);
+  --shadow-ink: 10 6 2;
+  --lamp-sheen: rgb(255 222 176 / 0.11);
+  --lamp-falloff: rgb(18 11 4 / 0.1);
 }

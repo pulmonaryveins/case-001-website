@@ -19,3 +19,26 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
 }
+
+/*
+ * Physical evidence depth, shared by every surface in the room.
+ * Declares --lit-filter on the element itself so it resolves with that
+ * element's own --elev; consume it via `filter` or Paper's --paper-depth-shadow.
+ * --lit / --warm / --sx / --sy are written by the lamp model (lighting.ts).
+ */
+.evidence-light {
+  --lit-filter: brightness(var(--lit, 1)) sepia(var(--warm, 0))
+    drop-shadow(-0.4px 0.6px 0 var(--paper-edge))
+    drop-shadow(
+      calc(var(--sx, -0.3) * var(--elev, 1) * 0.25px)
+        calc(var(--sy, 0.3) * var(--elev, 1) * 0.25px + 0.4px) calc(0.6px + var(--elev, 1) * 0.35px)
+        rgb(var(--shadow-ink) / calc(0.32 + var(--elev, 1) * 0.04))
+    )
+    drop-shadow(
+      calc(var(--sx, -0.3) * var(--elev, 1) * 1.3px)
+        calc(var(--sy, 0.3) * var(--elev, 1) * 1.3px + var(--elev, 1) * 0.35px)
+        calc(1px + var(--elev, 1) * 1.5px)
+        rgb(var(--shadow-ink) / calc(0.12 + var(--elev, 1) * 0.04))
+    );
+  --paper-depth-shadow: var(--lit-filter);
+}

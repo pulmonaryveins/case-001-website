@@ -1,11 +1,115 @@
 .paper {
   position: relative;
-  background: var(--color-paper);
-  color: var(--color-text-on-paper);
-  box-shadow: var(--shadow-mid);
+  color: var(--paper-ink, var(--color-text-on-paper));
   transform: rotate(var(--paper-rotation, 0deg));
+  filter: var(--paper-depth-shadow, var(--paper-contact-filter));
+  --paper-base: var(--color-paper);
+  --paper-finish: var(--paper-clean-finish);
+  --paper-edge-radius: 0;
+  /* Material is declared per sheet, never inherited from the sheet it lies on
+     (a document clipped inside a manila cover must not pick up folder fibre). */
+  --paper-texture: var(--paper-grain);
+  --paper-texture-size: var(--paper-grain-size);
+  --paper-edge-light: rgb(255 238 208 / 0.4);
+  --paper-edge-shade: rgb(58 42 24 / 0.2);
+  --paper-edge-wear: rgb(118 90 52 / 0.12);
 }
-
+/* Material stack (top -> bottom): finish, supplied scan or shared grain, base tone.
+   Edges: faint wear inward, a lamp-facing (upper/right) highlight and a shaded
+   lower/left edge, each ~1px so the sheet reads as ~0.5-1mm thick, not a bevel. */
+.surface {
+  position: relative;
+  min-height: inherit;
+  height: 100%;
+  padding: var(--paper-padding, 0);
+  background-color: var(--paper-base);
+  background-image: var(--paper-finish), var(--paper-texture, none);
+  background-size: cover, var(--paper-texture-size, 256px);
+  border-radius: var(--paper-edge-radius);
+  box-shadow:
+    inset -1px 1px 0 var(--paper-edge-light, transparent),
+    inset 1px -1px 0 var(--paper-edge-shade, transparent),
+    inset 0 0 14px var(--paper-edge-wear, transparent);
+  mask-image: var(--paper-edge-mask, none);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-mode: alpha;
+}
+.surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--paper-wear-image, none), var(--paper-crease, none);
+  background-size: 100% 100%;
+  opacity: var(--paper-wear-opacity);
+  pointer-events: none;
+}
+/* Lamp response across the sheet: warm on the side facing the light, slightly
+   deeper on the far side. Sits above the ink so print shares the same light. */
+.surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--z-paper) + 1);
+  border-radius: inherit;
+  background: linear-gradient(
+    var(--light-angle, 225deg),
+    var(--lamp-sheen, transparent),
+    transparent 45%,
+    var(--lamp-falloff, transparent)
+  );
+  pointer-events: none;
+}
+.content {
+  position: relative;
+  z-index: var(--z-paper);
+  height: 100%;
+}
 .aged {
-  background: var(--color-paper-aged);
+  --paper-base: var(--color-paper-aged);
+  --paper-finish: var(--paper-aged-finish);
+  --paper-crease: var(--material-crease);
+}
+.note {
+  --paper-base: var(--hero-paper-surface);
+  --paper-finish: var(--paper-note-finish);
+  --paper-crease: var(--material-crease);
+  --paper-edge-radius: var(--paper-worn-radius);
+}
+.document {
+  --paper-base: var(--paper-document-base);
+  --paper-finish: var(--paper-clean-finish);
+}
+.photoBacking {
+  --paper-base: var(--color-paper-backing);
+  --paper-finish: var(--paper-photo-finish);
+  --paper-edge-radius: var(--paper-worn-radius);
+}
+.torn {
+  --paper-base: var(--color-paper-aged);
+  --paper-finish: var(--paper-aged-finish);
+  --paper-edge-radius: var(--paper-damaged-radius);
+  --paper-crease: var(--material-crease);
+}
+/* Dark mounted map/document stock: grain reads as faint lighter fibres. */
+.map {
+  --paper-base: var(--color-paper-map);
+  /* Fibres read as scratches on dark stock: rely on finish + edges instead. */
+  --paper-texture: radial-gradient(ellipse at 30% 20%, rgb(255 240 210 / 0.035), transparent 70%);
+  --paper-finish: linear-gradient(160deg, rgb(255 240 210 / 0.05), transparent 60%);
+  --paper-edge-light: rgb(255 232 196 / 0.14);
+  --paper-edge-shade: rgb(0 0 0 / 0.4);
+  --paper-edge-wear: rgb(0 0 0 / 0.35);
+  --paper-ink: var(--color-text-muted);
+}
+/* Manila folder stock: heavier, warmer, slightly worn at the edges. */
+.manila {
+  --paper-base: var(--color-paper-manila);
+  --paper-texture: var(--folder-fiber);
+  --paper-texture-size: 320px;
+  --paper-finish: radial-gradient(ellipse at 100% 0%, rgb(255 236 200 / 0.1), transparent 60%);
+  --paper-edge-wear: rgb(90 62 28 / 0.34);
+  --paper-edge-shade: rgb(58 40 18 / 0.3);
+  --paper-edge-radius: 2px;
 }

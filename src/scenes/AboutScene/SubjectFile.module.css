@@ -1,0 +1,278 @@
+/*
+ * Dossier contents. Sizes are container units of the sheet they sit on, so the
+ * file reads identically however large the folder is rendered. The stacked
+ * (mobile) folder raises --type-scale because its sheets are read in flow.
+ */
+.identity,
+.profile {
+  --ts: var(--type-scale, 1);
+  position: relative;
+  height: 100%;
+  color: var(--hero-ink, var(--color-text-on-paper));
+}
+
+/* ---------- Shared typed labels ---------- */
+.kicker,
+.sectionLabel,
+.fields dt,
+.skills dt,
+.record dt {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--hero-ink-faint, var(--color-text-muted));
+}
+.kicker {
+  font-size: calc(2.2cqw * var(--ts));
+}
+.sectionLabel {
+  margin: calc(2.8cqw * var(--ts)) 0 calc(1.2cqw * var(--ts));
+  padding-bottom: calc(0.8cqw * var(--ts));
+  border-bottom: 1px solid var(--material-edge);
+  font-size: calc(2.1cqw * var(--ts));
+}
+
+/* ---------- Identification sheet (inside cover) ---------- */
+.idSheet {
+  position: absolute;
+  inset: 0;
+  /* Aged warm off-white record stock, held to the cover by the file's clip. */
+  --paper-base: var(--paper-offwhite-aged);
+  --elev: var(--elev-paper);
+  --paper-padding: 6cqw 6cqw 5cqw;
+}
+.idTitle,
+.statusValue {
+  display: grid;
+}
+.idTitle > span,
+.statusValue > span {
+  grid-area: 1 / 1;
+}
+.idTitle {
+  margin: calc(1cqw * var(--ts)) 0 calc(3.4cqw * var(--ts));
+  padding-bottom: calc(1cqw * var(--ts));
+  border-bottom: 2px solid var(--color-evidence-red-dim);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(4.8cqw * var(--ts));
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+[data-state='identified'] {
+  opacity: 0;
+}
+.statusValue [data-state='identified'] {
+  color: var(--color-evidence-red-dim);
+}
+.portrait {
+  position: relative;
+  width: 44cqw;
+  margin: 0 0 calc(4cqw * var(--ts)) 2cqw;
+  padding: 1.6cqw 1.6cqw 5cqw;
+  background-color: var(--color-paper-photo);
+  background-image: var(--paper-grain);
+  background-size: var(--paper-grain-size);
+  box-shadow:
+    inset -1px 1px 0 var(--paper-edge-light),
+    inset 1px -1px 0 var(--paper-edge-shade);
+  rotate: 2.5deg;
+  --elev: var(--elev-photo);
+  filter: var(--lit-filter);
+}
+.portrait img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 6;
+  object-fit: cover;
+  /* Develops from a flat, under-exposed print as the file is read (--develop 0 -> 1). */
+  filter: grayscale(0.6) contrast(calc(0.7 + 0.35 * var(--develop, 0)))
+    brightness(calc(0.62 + 0.38 * var(--develop, 0)));
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+}
+.portrait figcaption {
+  position: absolute;
+  left: 1.6cqw;
+  bottom: 1.2cqw;
+  font-family: var(--font-display);
+  font-size: calc(1.9cqw * var(--ts));
+  letter-spacing: 0.14em;
+}
+.unknownStamp {
+  position: absolute;
+  left: 6cqw;
+  bottom: 9cqw;
+  font-size: 4.2cqw;
+  opacity: 0.8;
+  mix-blend-mode: multiply;
+}
+.strike {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  top: 48%;
+  height: 0.45cqw;
+  background: var(--color-evidence-red);
+  transform-origin: 0 50%;
+  transform: rotate(-6deg) scaleX(var(--strike, 0));
+}
+.fields {
+  display: grid;
+  gap: calc(1.4cqw * var(--ts));
+}
+.fields > div {
+  display: grid;
+  grid-template-columns: 20cqw 1fr;
+  align-items: baseline;
+}
+.fields dt {
+  font-size: calc(2cqw * var(--ts));
+}
+.fields dd {
+  font-family: var(--font-display);
+  font-size: calc(2.8cqw * var(--ts));
+  letter-spacing: 0.06em;
+}
+.fields .name {
+  font-size: calc(3.6cqw * var(--ts));
+}
+.identifiedStamp {
+  position: absolute;
+  right: 5cqw;
+  top: 38cqw;
+  font-size: 5.6cqw;
+  opacity: 0;
+  scale: var(--land, 1.12);
+  mix-blend-mode: multiply;
+}
+
+/* ---------- Profile page ---------- */
+.profile {
+  padding: 7cqw 7cqw 6cqw;
+}
+.profileTitle {
+  margin: calc(1cqw * var(--ts)) 0 calc(2.6cqw * var(--ts));
+  padding-bottom: calc(1cqw * var(--ts));
+  border-bottom: 2px solid var(--color-evidence-red-dim);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(4.8cqw * var(--ts));
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.summary p {
+  font-family: var(--font-display);
+  font-size: calc(2.35cqw * var(--ts));
+  line-height: 1.45;
+}
+.disciplines {
+  display: grid;
+  gap: calc(0.9cqw * var(--ts));
+}
+.disciplines li {
+  display: flex;
+  gap: 2.4cqw;
+  font-family: var(--font-display);
+  font-size: calc(2.7cqw * var(--ts));
+  letter-spacing: 0.04em;
+}
+.disciplines li span {
+  color: var(--color-evidence-red-dim);
+}
+.skills {
+  display: grid;
+  gap: calc(0.9cqw * var(--ts));
+}
+.skills > div {
+  display: grid;
+  grid-template-columns: 22cqw 1fr;
+  align-items: baseline;
+}
+.skills dt {
+  font-size: calc(2cqw * var(--ts));
+}
+.skills dd {
+  font-family: var(--font-display);
+  font-size: calc(2.45cqw * var(--ts));
+}
+/* ---------- Education record ----------
+   A separate administrative sheet lying across the lower page, below Skills.
+   Warmer record stock, its own thin edge and a slightly raised shadow. */
+.education {
+  position: absolute;
+  left: 4cqw;
+  right: 5cqw;
+  top: 94cqw;
+}
+.educationRecord {
+  --paper-base: var(--color-paper-aged);
+  --elev: var(--elev-note);
+  --paper-padding: 3cqw 4.4cqw 3.4cqw;
+}
+.recordHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2cqw;
+  padding-bottom: calc(1cqw * var(--ts));
+  margin-bottom: calc(2.2cqw * var(--ts));
+  border-bottom: 1.5px solid var(--color-evidence-red-dim);
+}
+.recordTitle {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(3cqw * var(--ts));
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.recordHeader .kicker {
+  font-size: calc(1.8cqw * var(--ts));
+}
+/* Two columns of typed fields: label above value, like a filled-in form. */
+.record {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(2cqw * var(--ts)) 4cqw;
+}
+.record > div {
+  display: grid;
+  align-content: start;
+  gap: calc(0.5cqw * var(--ts));
+}
+.record dt {
+  font-size: calc(1.8cqw * var(--ts));
+  color: rgb(57 56 45 / 0.62);
+}
+.record dd {
+  font-family: var(--font-display);
+  font-size: calc(2.5cqw * var(--ts));
+  letter-spacing: 0.04em;
+}
+
+/* Reveal targets start hidden; the dossier timeline brings them in. */
+[data-reveal] {
+  opacity: 0;
+  translate: 0 var(--enter-y, 1.2cqw);
+}
+
+/* ---------- Stacked (mobile) ---------- */
+:global([data-layout='stacked']) .idSheet {
+  position: relative;
+  inset: auto;
+}
+:global([data-layout='stacked']) .identity,
+:global([data-layout='stacked']) .profile {
+  height: auto;
+}
+/* Stacked: the record simply follows the skills in flow. */
+:global([data-layout='stacked']) .education {
+  position: relative;
+  inset: auto;
+  margin-top: calc(4cqw * var(--ts));
+}
+:global([data-layout='stacked']) .fields > div,
+:global([data-layout='stacked']) .skills > div {
+  grid-template-columns: 38cqw 1fr;
+}

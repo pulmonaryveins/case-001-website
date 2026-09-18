@@ -1,6 +1,8 @@
 .polaroid {
   display: inline-block;
-  background: #f5f2ea;
+  background: var(--color-paper-photo);
+  background-image: var(--photo-paper-texture, none);
+  background-size: cover;
   padding: var(--space-2) var(--space-2) var(--space-4);
   box-shadow: var(--shadow-mid);
   transform: rotate(var(--polaroid-rotation, 0deg));

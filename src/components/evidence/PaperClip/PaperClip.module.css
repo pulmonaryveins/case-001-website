@@ -1,0 +1,33 @@
+/*
+ * Aged dark steel: thin, matte, lit from the upper right. The top 10/64 of the
+ * drawing is the bend above the gripped edge, so the element is lifted by that
+ * much and the wire crosses the real silhouette of the sheet.
+ */
+.clip {
+  position: absolute;
+  width: 3.2%;
+  aspect-ratio: 20 / 64;
+  translate: 0 calc(-10 / 64 * 100%);
+  overflow: visible;
+  /* Pressed flat onto the paper: a tight contact line, barely any cast. */
+  filter: drop-shadow(-0.35px 0.5px 0.2px rgb(8 5 2 / 0.75))
+    drop-shadow(-0.8px 1px 0.6px rgb(8 5 2 / 0.25));
+}
+.wire {
+  fill: none;
+  stroke: #4c4943;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.highlight {
+  fill: none;
+  stroke: rgb(214 200 172 / 0.38);
+  stroke-width: 0.45;
+  stroke-linecap: round;
+  translate: 0.4px -0.2px;
+}
+/* The inner loop lies in the cover's shade on the far side. */
+.clip[data-side='back'] .wire {
+  stroke: #45423c;
+}

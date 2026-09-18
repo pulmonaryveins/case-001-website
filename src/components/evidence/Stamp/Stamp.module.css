@@ -7,4 +7,7 @@
   transform: rotate(var(--stamp-rotation, -8deg));
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  /* Ink takes the paper's tooth where a surface supplies --ink-wear. */
+  mask-image: var(--ink-wear, none);
+  mask-size: 140px;
 }

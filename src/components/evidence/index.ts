@@ -5,3 +5,5 @@ export * from './PushPin';
 export * from './EvidenceString';
 export * from './Stamp';
 export * from './CaseLabel';
+export * from './Dossier';
+export * from './PaperClip';

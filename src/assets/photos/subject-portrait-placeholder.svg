@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="400" height="480">
+  <!-- Placeholder only: replace with photos/subject/subject-portrait.{avif,webp}. -->
+  <defs>
+    <radialGradient id="key" cx="72%" cy="18%" r="95%">
+      <stop offset="0" stop-color="#8d8674"/>
+      <stop offset=".55" stop-color="#4a4740"/>
+      <stop offset="1" stop-color="#23221f"/>
+    </radialGradient>
+    <linearGradient id="figure" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6f6a5e"/>
+      <stop offset="1" stop-color="#2c2a26"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="480" fill="url(#key)"/>
+  <path fill="url(#figure)" d="M58 480c6-86 36-138 112-158l16-40c-24-20-36-58-34-100 2-64 30-98 76-98 50 0 78 38 76 100-1 46-14 80-38 100l16 40c78 22 100 70 106 156z"/>
+  <text x="200" y="455" text-anchor="middle" font-family="monospace" font-size="13" letter-spacing="3" fill="#b9b19b" opacity=".75">PORTRAIT TO BE SUPPLIED</text>
+</svg>

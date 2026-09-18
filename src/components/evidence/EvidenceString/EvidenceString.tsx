@@ -5,6 +5,7 @@ export interface EvidenceStringProps {
   to: { x: number; y: number };
   sag?: number;
   className?: string;
+  viewBox?: string;
 }
 
 /**
@@ -12,7 +13,7 @@ export interface EvidenceStringProps {
  * SVG quadratic curve. Positioned absolutely by the caller (parent must be
  * position:relative and sized to the coordinate space `from`/`to` are in).
  */
-export function EvidenceString({ from, to, sag = 20, className }: EvidenceStringProps) {
+export function EvidenceString({ from, to, sag = 20, className, viewBox }: EvidenceStringProps) {
   const midX = (from.x + to.x) / 2;
   const midY = (from.y + to.y) / 2 + sag;
 
@@ -21,12 +22,14 @@ export function EvidenceString({ from, to, sag = 20, className }: EvidenceString
       aria-hidden="true"
       className={[styles.string, className].filter(Boolean).join(' ')}
       preserveAspectRatio="none"
+      viewBox={viewBox}
     >
       <path
         d={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
         fill="none"
         stroke="var(--color-evidence-red)"
         strokeWidth={2}
+        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <!-- Alpha mask for stamped ink: mostly solid, with paper tooth breaking it up. -->
+  <filter id="tooth" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="12" stitchTiles="stitch"/>
+    <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 -3.2 0 2.35"/>
+  </filter>
+  <rect width="160" height="160" filter="url(#tooth)"/>
+</svg>
