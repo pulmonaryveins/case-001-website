@@ -121,7 +121,11 @@
   --hero-registered-title-size: 2.6rem;
   --hero-registered-note-size: 1.25rem;
   --hero-frame: #30291f;
-  --hero-ink-faint: #8a806b;
+  /* Faint/secondary ink (kickers, dates, page counters, field labels): the
+     previous #8a806b measured ~2.8:1 on --paper-ivory, well under WCAG AA for
+     small text. This reads ~5.5:1 — still visibly secondary to --hero-ink's
+     ~10:1, but no longer disappears. */
+  --hero-ink-faint: #5a5140;
   --hero-tape: rgb(212 196 156 / 0.55);
   --hero-board-light:
     radial-gradient(ellipse at 100% 5%, #ffd49350, transparent 65%),
@@ -158,7 +162,10 @@
   );
   --hero-cork-texture: url('../assets/textures/cork-grain.svg');
   --hero-paper-surface: #d3c7aa;
-  --hero-ink: #39382d;
+  /* Primary document ink: darkened from #39382d (still a warm charcoal, not
+     pure black) to read closer to typewriter ink physically pressed into
+     paper — ~10:1 contrast on the paper stocks instead of ~8:1. */
+  --hero-ink: #2c2620;
   --paper-clean-finish: linear-gradient(110deg, #fff9e71c, transparent 65%);
   --paper-aged-finish: radial-gradient(ellipse at 0% 100%, #856b3324, transparent 48%);
   --paper-note-finish: linear-gradient(96deg, transparent 49%, #68563a0c 50%, transparent 51%);
@@ -181,6 +188,11 @@
   /* Dossier stocks: one restrained family, told apart by tone. */
   --paper-ivory: #e2d8c1;
   --paper-offwhite-aged: #d8ccb1;
+  /* Open file: a turning sheet's shadow on the page below, the tint of a typed
+     form field, and the rounded outer corner of an index tab. */
+  --dossier-turn-shade: linear-gradient(90deg, rgb(32 23 14 / 0.85), transparent 78%);
+  --dossier-field-fill: rgb(102 83 51 / 0.09);
+  --dossier-tab-radius: 2px;
   --elev-flush: 0.35;
   --elev-paper: 1.1;
   --elev-note: 2;

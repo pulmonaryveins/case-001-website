@@ -15,8 +15,7 @@
 .kicker,
 .sectionLabel,
 .fields dt,
-.skills dt,
-.record dt {
+.skills dt {
   font-family: var(--font-display);
   font-weight: 400;
   text-transform: uppercase;
@@ -105,24 +104,6 @@
   font-size: calc(1.9cqw * var(--ts));
   letter-spacing: 0.14em;
 }
-.unknownStamp {
-  position: absolute;
-  left: 6cqw;
-  bottom: 9cqw;
-  font-size: 4.2cqw;
-  opacity: 0.8;
-  mix-blend-mode: multiply;
-}
-.strike {
-  position: absolute;
-  left: -6%;
-  right: -6%;
-  top: 48%;
-  height: 0.45cqw;
-  background: var(--color-evidence-red);
-  transform-origin: 0 50%;
-  transform: rotate(-6deg) scaleX(var(--strike, 0));
-}
 .fields {
   display: grid;
   gap: calc(1.4cqw * var(--ts));
@@ -153,9 +134,11 @@
   mix-blend-mode: multiply;
 }
 
-/* ---------- Profile page ---------- */
+/* ---------- Profile page (page 01) ----------
+   Bottom padding clears the file's page counter, which is folder furniture
+   sitting above the sheets rather than part of any page. */
 .profile {
-  padding: 7cqw 7cqw 6cqw;
+  padding: 7cqw 7cqw 14cqw;
 }
 .profileTitle {
   margin: calc(1cqw * var(--ts)) 0 calc(2.6cqw * var(--ts));
@@ -202,61 +185,6 @@
   font-family: var(--font-display);
   font-size: calc(2.45cqw * var(--ts));
 }
-/* ---------- Education record ----------
-   A separate administrative sheet lying across the lower page, below Skills.
-   Warmer record stock, its own thin edge and a slightly raised shadow. */
-.education {
-  position: absolute;
-  left: 4cqw;
-  right: 5cqw;
-  top: 94cqw;
-}
-.educationRecord {
-  --paper-base: var(--color-paper-aged);
-  --elev: var(--elev-note);
-  --paper-padding: 3cqw 4.4cqw 3.4cqw;
-}
-.recordHeader {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 2cqw;
-  padding-bottom: calc(1cqw * var(--ts));
-  margin-bottom: calc(2.2cqw * var(--ts));
-  border-bottom: 1.5px solid var(--color-evidence-red-dim);
-}
-.recordTitle {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: calc(3cqw * var(--ts));
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.recordHeader .kicker {
-  font-size: calc(1.8cqw * var(--ts));
-}
-/* Two columns of typed fields: label above value, like a filled-in form. */
-.record {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(2cqw * var(--ts)) 4cqw;
-}
-.record > div {
-  display: grid;
-  align-content: start;
-  gap: calc(0.5cqw * var(--ts));
-}
-.record dt {
-  font-size: calc(1.8cqw * var(--ts));
-  color: rgb(57 56 45 / 0.62);
-}
-.record dd {
-  font-family: var(--font-display);
-  font-size: calc(2.5cqw * var(--ts));
-  letter-spacing: 0.04em;
-}
-
 /* Reveal targets start hidden; the dossier timeline brings them in. */
 [data-reveal] {
   opacity: 0;
@@ -271,12 +199,6 @@
 :global([data-layout='stacked']) .identity,
 :global([data-layout='stacked']) .profile {
   height: auto;
-}
-/* Stacked: the record simply follows the skills in flow. */
-:global([data-layout='stacked']) .education {
-  position: relative;
-  inset: auto;
-  margin-top: calc(4cqw * var(--ts));
 }
 :global([data-layout='stacked']) .fields > div,
 :global([data-layout='stacked']) .skills > div {

@@ -14,10 +14,13 @@ import { gsap } from '../lib/gsap';
  * Everything created inside the callback (tweens, timelines, ScrollTriggers)
  * is scoped to `scope` and automatically reverted on unmount — never create
  * a global/unscoped timeline in a scene component.
+ *
+ * The callback may return a cleanup function for anything GSAP cannot revert
+ * by itself (an external subscription, say); gsap.context runs it on revert.
  */
 export function useGSAPContext(
   scope: RefObject<HTMLElement | null>,
-  callback: (context: gsap.Context) => void,
+  callback: (context: gsap.Context) => void | (() => void),
   deps: React.DependencyList = [],
 ) {
   const contextRef = useRef<gsap.Context | null>(null);

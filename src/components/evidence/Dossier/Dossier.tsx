@@ -11,7 +11,11 @@ export interface DossierProps {
   status: string;
   /** Clipped to the inside of the cover (left of the spine once open). */
   inside?: ReactNode;
-  /** Top page of the file (right of the spine once open). */
+  /**
+   * The page well, right of the spine once open. Renders its own sheets so a
+   * file can hold one page or a turning stack; the well owns the geometry,
+   * container and stock, so every sheet lands in the same physical place.
+   */
   pages?: ReactNode;
   /**
    * `spread`: cover hinges on the left spine and lands flat to the left (desk).
@@ -54,13 +58,11 @@ export function Dossier({
           aria-hidden="true"
         />
         {layout === 'stacked' && inside && (
-          <Paper className={`${styles.page} ${styles.insidePage} evidence-light`} variant="manila">
+          <Paper className={`${styles.insidePage} evidence-light`} variant="manila">
             {inside}
           </Paper>
         )}
-        <Paper className={`${styles.page} evidence-light`} variant="clean" rotation={-0.5}>
-          {pages}
-        </Paper>
+        <div className={styles.pageWell}>{pages}</div>
         <span className={styles.pagesShade} aria-hidden="true" />
       </div>
       <span className={styles.liftShadow} aria-hidden="true" />

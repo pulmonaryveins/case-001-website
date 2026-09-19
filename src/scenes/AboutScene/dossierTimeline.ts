@@ -3,6 +3,16 @@ import type { CameraState } from '../HeroScene/environment/cameraPath';
 
 type Query = (selector: string) => Element[];
 
+/**
+ * Fraction of the dossier span where every reveal in `addDossierOpening` /
+ * `addDossierCut` has actually finished and the file reads as fully open and
+ * identified — the profile settle in the normal path, the cut fading back out
+ * in the reduced one. `dossierPagesTimeline.addDossierPages` arms the
+ * navigation tabs here, not at the end of the segment's trailing hold, so
+ * they're already live the moment the content they navigate is readable.
+ */
+export const REVEAL_COMPLETE = { normal: 0.82, reduced: 0.502 };
+
 interface Segment {
   /** Timeline position where the dossier segment begins (= end of the desk journey). */
   start: number;
@@ -21,7 +31,6 @@ interface Segment {
  *   0.15-0.62  camera leans in over the spread         (inspect)
  *   0.40-0.56  identification photo develops           (--develop)
  *   0.56-0.66  name / role / location typed in
- *   0.66-0.71  UNKNOWN struck through
  *   0.71-0.76  IDENTIFIED stamp lands, status swaps
  *   0.76-0.90  profile, disciplines, skills, education settle
  *   0.90-1.00  hold on the open file
@@ -50,8 +59,6 @@ export function addDossierOpening(
       { opacity: 1, '--enter-y': '0cqw', duration: len(0.05), stagger: len(0.025) },
       at(0.56),
     )
-    .to(q('[data-strike]'), { '--strike': 1, duration: len(0.04), ease: 'power1.in' }, at(0.66))
-    .to(q('[data-stamp="unknown"]'), { opacity: 0.32, duration: len(0.04) }, at(0.68))
     .to(
       q('[data-stamp="identified"]'),
       { opacity: 0.85, '--land': 1, duration: len(0.035), ease: 'power3.out' },
@@ -94,8 +101,6 @@ export function addDossierCut(
     .to(camera, { inspect: 1, duration: instant, onUpdate: invalidate }, at(0.42))
     .to(q('[data-portrait]'), { '--develop': 1, duration: instant }, at(0.42))
     .to(q('[data-reveal]'), { opacity: 1, '--enter-y': '0cqw', duration: instant }, at(0.42))
-    .to(q('[data-strike]'), { '--strike': 1, duration: instant }, at(0.42))
-    .to(q('[data-stamp="unknown"]'), { opacity: 0.32, duration: instant }, at(0.42))
     .to(q('[data-stamp="identified"]'), { opacity: 0.85, '--land': 1, duration: instant }, at(0.42))
     .to(
       q('[data-state="pending"]'),
@@ -126,8 +131,6 @@ export function createStackedOpening(root: Element, reducedMotion: boolean) {
       { opacity: 1, '--enter-y': '0cqw', duration: 0.35, stagger: 0.08 },
       0.7,
     )
-    .to(q('[data-strike]'), { '--strike': 1, duration: 0.25, ease: 'power1.in' }, 1.05)
-    .to(q('[data-stamp="unknown"]'), { opacity: 0.32, duration: 0.3 }, 1.2)
     .to(
       q('[data-stamp="identified"]'),
       { opacity: 0.85, '--land': 1, duration: 0.3, ease: 'power3.out' },

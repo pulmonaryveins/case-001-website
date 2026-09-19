@@ -181,11 +181,14 @@ lamp opens through scroll progress, revealing photograph, name, location,
 description, disciplines, skills, education. This is where the unknown
 subject becomes identified.
 
-**05 — Experience.** The dossier closes; work history becomes a physical
-evidence timeline across the desk, with the red string as the timeline.
-Entries may be employee IDs, photographs, business cards, memos, invoices,
-badges, documents. Vertical scrolling may drive horizontal/diagonal camera
-traversal.
+**05 — Experience.** The dossier stays open and the reader goes deeper into
+it. Work history is read as further right-hand pages of the same case file,
+one record per page, each with its own attached photographic evidence. The
+left page remains the subject profile throughout, so the whole section reads
+as one continuous physical file rather than a new scene. (This supersedes an
+earlier plan for a separate evidence timeline laid across the desk: the file
+metaphor already carries the narrative, and closing and re-staging the
+dossier broke the continuity the desk arrival establishes.)
 
 **06 — Project Archive.** Projects appear as unopened physical case
 folders, showing project name, category, year, preview photograph.
@@ -429,8 +432,9 @@ SCENE 01 — INTRO
 SCENE 02 — HERO / INVESTIGATION BOARD
 SCENE 03 — BOARD → DESK TRANSITION (ends on the closed dossier)
 SCENE 04 — SUBJECT DOSSIER / ABOUT (opens the dossier)
+SCENE 05 — EXPERIENCE (read as further pages of the open dossier)
 
-Next milestone: SCENE 05 — EXPERIENCE.
+Next milestone: SCENE 06 — PROJECT ARCHIVE.
 
 How the room works (read before extending it):
 
@@ -444,6 +448,21 @@ How the room works (read before extending it):
 - The closed dossier is the `Dossier` primitive on the desk plane
   (`DeskEvidence`). Open it there; its type scales with its own width, so it
   renders the same on the desk plane and the mobile panel.
+- The open file has two halves with different lifetimes. The left page is the
+  identification sheet clipped to the cover (`Dossier`'s `inside` slot), so it
+  cannot change while pages turn. The right half is the `pageWell`: a plain,
+  unfiltered, `preserve-3d` box that holds a stack of sheets, which is why a
+  turning page is foreshortened by the same camera as the cover.
+- The page stack is owned by one `DossierPageController`
+  (`AboutScene/pageController.ts`). Its `motion.value` is a continuous page
+  position appended to the same pinned stage timeline
+  (`addDossierPages`), so scrolling, the index tabs and the arrows all resolve
+  to one state and reverse scrolling replays turns exactly. Tabs navigate by
+  scrolling to the position that already represents that page — never by
+  setting state behind the scrub's back. Per-frame page poses are written
+  straight to the DOM by a painter; React re-renders only when the integer
+  page changes. Page order and count come from the data (About, Education,
+  then one page per `experience` record).
 - DOM lighting on any plane comes from `environment/lighting.ts`
   (`evidenceLight(u, v, surface)`), driven by the same lamp config as three.js.
 

@@ -8,9 +8,11 @@ import styles from './SubjectFile.module.css';
  * `data/profile.ts`. Reveal targets are marked with data attributes; their
  * hidden starting states live in CSS so every timeline starts deterministic:
  *   data-reveal="identity" | "profile"   fade/settle in
- *   data-stamp="unknown" / data-strike   the UNKNOWN verdict, then struck through
  *   data-stamp="identified"              the IDENTIFIED stamp landing
  *   data-state="pending" | "identified"  status text swap
+ * The board's UNKNOWN verdict never appears here: the dossier is the later
+ * narrative state (identified), so its portrait never carries an UNKNOWN
+ * stamp underneath — only IDENTIFIED lands.
  */
 
 /** Inside of the cover (left page once open): the identification sheet. */
@@ -36,10 +38,6 @@ export function IdentitySheet() {
             decoding="async"
           />
           <figcaption>ID PHOTO / {caseFile.caseNumber.replace('CASE ', '')}</figcaption>
-          <span className={styles.unknownStamp} data-stamp="unknown" aria-hidden="true">
-            <Stamp text="UNKNOWN" rotation={-6} />
-            <span className={styles.strike} data-strike />
-          </span>
         </figure>
         <dl className={styles.fields}>
           <div data-reveal="identity">
@@ -72,8 +70,13 @@ export function IdentitySheet() {
   );
 }
 
-/** Top page of the file (right page once open): profile, disciplines, skills, education. */
-export function ProfilePages() {
+/**
+ * Page 01 of the file (first right-hand page): profile, disciplines, skills.
+ * The education record moved to its own page (see DossierPages); nothing else
+ * about this page changed, and its `data-reveal` targets are the ones the
+ * approved opening timeline animates — new pages must not use that attribute.
+ */
+export function AboutPage() {
   return (
     <article className={styles.profile} aria-labelledby="subject-profile">
       <p className={styles.kicker}>FILE 0926-A / CONFIRMED</p>
@@ -111,46 +114,6 @@ export function ProfilePages() {
           ))}
         </dl>
       </section>
-      <EducationEvidence />
     </article>
-  );
-}
-
-/**
- * Secondary evidence after the profile: one administrative education record
- * lying on the lower page. Text only; every value comes from profile data.
- */
-function EducationEvidence() {
-  return (
-    <section className={styles.education} data-reveal="profile" aria-labelledby="subject-education">
-      <Paper className={`${styles.educationRecord} evidence-light`} variant="aged" rotation={-0.6}>
-        <header className={styles.recordHeader}>
-          <h3 id="subject-education" className={styles.recordTitle}>
-            Education record
-          </h3>
-          <p className={styles.kicker}>CASE 0926 / EDUCATION</p>
-        </header>
-        {profile.education.map((entry) => (
-          <dl key={entry.institution} className={styles.record}>
-            <div>
-              <dt>Institution</dt>
-              <dd>{entry.institution}</dd>
-            </div>
-            <div>
-              <dt>Program</dt>
-              <dd>{entry.program}</dd>
-            </div>
-            <div>
-              <dt>Period</dt>
-              <dd>{entry.period}</dd>
-            </div>
-            <div>
-              <dt>Location</dt>
-              <dd>{entry.location}</dd>
-            </div>
-          </dl>
-        ))}
-      </Paper>
-    </section>
   );
 }

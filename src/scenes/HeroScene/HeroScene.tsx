@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -31,7 +32,11 @@ import {
   addDossierCut,
   addDossierOpening,
   createStackedOpening,
+  REVEAL_COMPLETE,
 } from '../AboutScene/dossierTimeline';
+import { addDossierPages } from '../AboutScene/dossierPagesTimeline';
+import { DossierPageController, pageCount, pageScrollLength } from '../AboutScene/pageController';
+import { experience } from '../../data/experience';
 import { useGSAPContext } from '../../hooks/useGSAPContext';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { BREAKPOINTS, useMediaQuery } from '../../hooks/useMediaQuery';
@@ -149,6 +154,10 @@ export function HeroScene() {
   const reducedMotion = useReducedMotion();
   const mobile = useMediaQuery(BREAKPOINTS.mobile);
   const tablet = useMediaQuery(BREAKPOINTS.tablet);
+  // One owner for the dossier's right-hand pages: the scrubbed stage, the index
+  // tabs and the arrows all resolve through this single controller. Page count
+  // follows the data, so a new experience record adds a page by itself.
+  const pages = useMemo(() => new DossierPageController(pageCount(experience.length)), []);
 
   const rendering = mobile || environmentFailed ? 'fallback' : '3d';
   const ready = contentReady && (rendering === 'fallback' || environmentReady);
@@ -273,7 +282,8 @@ export function HeroScene() {
     }
   }, [ready, reducedMotion]);
 
-  // The pinned stage: board -> desk journey, then the dossier opens (About).
+  // The pinned stage: board -> desk journey, the dossier opens (About), then
+  // its right-hand pages are read one after another.
   // One scrubbed timeline drives the camera state; the rig turns it into a
   // single continuous move and re-projects every DOM plane from the same
   // camera, so evidence stays registered and every step reverses exactly.
@@ -288,12 +298,13 @@ export function HeroScene() {
     const size = tablet ? 'tablet' : 'desktop';
     const journeyLength = world.travel.distance[size];
     const dossierLength = world.travel.dossier[size];
+    const pagesLength = pageScrollLength(pages.count);
     const stage = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
         trigger: root,
         start: 'top top',
-        end: () => `+=${window.innerHeight * (journeyLength + dossierLength)}`,
+        end: () => `+=${window.innerHeight * (journeyLength + dossierLength + pagesLength)}`,
         pin: true,
         scrub: true,
         invalidateOnRefresh: true,
@@ -327,9 +338,24 @@ export function HeroScene() {
       addDossierOpening(stage, q, dossier, cameraState.current, invalidate);
       caseStep('02', '03', dossier.start + dossier.span * 0.72, dossier.span * 0.04);
     }
+    // Reading the file continues the same scrub: the sheets turn where the
+    // opening left off, and tab clicks resolve to positions on this timeline.
+    // The navigation tabs arm earlier, right as the opening's own reveal
+    // finishes — not at the very end of the segment's trailing hold.
+    const revealedAt =
+      dossier.start +
+      dossier.span * (reducedMotion ? REVEAL_COMPLETE.reduced : REVEAL_COMPLETE.normal);
+    const reading = addDossierPages(
+      stage,
+      pages,
+      dossier.start + dossier.span,
+      revealedAt,
+      reducedMotion,
+    );
     // Pin the timeline length to the scroll length so progress maps 1:1.
-    stage.set({}, {}, journeyLength + dossierLength);
-  }, [rendering, tablet, reducedMotion]);
+    stage.set({}, {}, journeyLength + dossierLength + pagesLength);
+    return reading.disconnect;
+  }, [rendering, tablet, reducedMotion, pages]);
 
   // Fallback (mobile / no WebGL): no pinned stage. The stacked file opens once
   // it is being read and closes again if the reader scrolls back above it.
@@ -342,7 +368,11 @@ export function HeroScene() {
       onEnter: () => opening.play(),
       onLeaveBack: () => opening.reverse(),
     });
-  }, [rendering, reducedMotion]);
+    // No pinned scrub here, so the file's own tabs and arrows are the only way
+    // through its pages: they are live as soon as the panel is.
+    pages.setEnabled(true);
+    return () => pages.setEnabled(false);
+  }, [rendering, reducedMotion, pages]);
 
   const materialStyle = {
     '--hero-cork-texture': `url("${heroAssets.cork}")`,
@@ -552,12 +582,12 @@ export function HeroScene() {
           data-grain={grain}
         >
           <GrainResolution.Provider value={grainScale.desk}>
-            <DeskEvidence layout="plane" />
+            <DeskEvidence layout="plane" controller={pages} flat={reducedMotion} />
           </GrainResolution.Provider>
         </div>
       ) : (
         <div ref={deskOverlay} className={styles.deskPanel} data-stage>
-          <DeskEvidence layout="panel" />
+          <DeskEvidence layout="panel" controller={pages} flat />
         </div>
       )}
       <div className={styles.cut} data-cut aria-hidden="true" />

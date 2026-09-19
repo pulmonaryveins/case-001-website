@@ -1,0 +1,486 @@
+/*
+ * Right-hand pages of the open file. Sizes are container units of the page
+ * well, so a page reads identically on the projected desk plane and in the
+ * stacked mobile panel. Only transform and opacity are ever animated here;
+ * every sheet's pose comes from DossierPageController.poseFor, written
+ * straight to inline styles — never a CSS transition on the sheet itself.
+ */
+.stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* Two-class selectors: these must win over Paper's own base rules regardless
+   of stylesheet order. */
+.stack > .sheet {
+  position: absolute;
+  inset: 0;
+  /* Hinges on the inner edge, against the spine. */
+  transform-origin: 0 50%;
+  backface-visibility: hidden;
+}
+.sheet {
+  --paper-base: var(--paper-ivory);
+  /* Type scale for everything printed on the sheet, page furniture included. */
+  --ts: var(--type-scale, 1);
+  /* A page lying flush in the folder, not a raised photo: a tight contact
+     shadow at rest (the default --elev:1 read as a wider, softer cast). */
+  --elev: var(--elev-flush);
+}
+/* Pieces lying on a sheet are lit by the sheet, not by the lamp a second time. */
+.sheet :global(.evidence-light) {
+  --lit: 1;
+  --warm: 0;
+}
+/* The sheet above casting onto the one beneath; cleared as the turn finishes. */
+.shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--dossier-turn-shade);
+  opacity: 0;
+}
+.folio {
+  position: absolute;
+  right: 6cqw;
+  top: 6cqw;
+  font-family: var(--font-display);
+  font-size: calc(2.1cqw * var(--ts, 1));
+  letter-spacing: 0.12em;
+  color: var(--hero-ink-faint);
+}
+
+/* ---------- Shared page furniture ---------- */
+.document {
+  position: relative;
+  height: 100%;
+  /* Ink cannot run off the sheet: whatever the supplied copy turns out to be,
+     a page clips at its own edge rather than spilling onto the folder. The
+     bottom padding clears the file's page counter. */
+  overflow: hidden;
+  padding: 6cqw 7cqw 14cqw;
+  color: var(--hero-ink, var(--color-text-on-paper));
+  font-family: var(--font-display);
+}
+.kicker,
+.fields dt,
+.focusLabel {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--hero-ink-faint, var(--color-text-muted));
+}
+.kicker {
+  font-size: calc(2.2cqw * var(--ts));
+}
+.title {
+  margin: calc(1cqw * var(--ts)) 0 calc(2.6cqw * var(--ts));
+  padding-bottom: calc(1cqw * var(--ts));
+  border-bottom: 2px solid var(--color-evidence-red-dim);
+  font-weight: 400;
+  font-size: calc(4.8cqw * var(--ts));
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+/* Typed reference line, boxed like a stamped field on a form. */
+.stamped {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2.4cqw;
+  padding: 1.1cqw 2.4cqw;
+  border: 1px solid var(--material-edge);
+  background: var(--dossier-field-fill);
+  font-size: calc(2.3cqw * var(--ts));
+  letter-spacing: 0.06em;
+}
+.stamped span {
+  color: var(--color-evidence-red-dim);
+  letter-spacing: 0.12em;
+}
+
+/* ---------- Education ---------- */
+.record + .record {
+  margin-top: calc(5cqw * var(--ts));
+}
+.record .stamped {
+  margin-bottom: calc(4cqw * var(--ts));
+}
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(3.4cqw * var(--ts)) 5cqw;
+}
+.fields > div {
+  display: grid;
+  align-content: start;
+  gap: calc(0.8cqw * var(--ts));
+}
+.fields dt {
+  font-size: calc(1.9cqw * var(--ts));
+}
+.fields dd {
+  font-size: calc(2.6cqw * var(--ts));
+  letter-spacing: 0.04em;
+}
+.fields .lead {
+  font-size: calc(3.2cqw * var(--ts));
+}
+.note {
+  margin-top: calc(4.5cqw * var(--ts));
+  padding-top: calc(2.6cqw * var(--ts));
+  border-top: 1px solid var(--material-edge);
+  font-size: calc(2.4cqw * var(--ts));
+  line-height: 1.5;
+}
+
+/* ---------- Experience ---------- */
+.organization {
+  margin: calc(3.4cqw * var(--ts)) 0 calc(1.2cqw * var(--ts));
+  font-weight: 400;
+  font-size: calc(3.9cqw * var(--ts));
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+.role {
+  padding-bottom: calc(1.8cqw * var(--ts));
+  border-bottom: 1px solid var(--material-edge);
+  font-size: calc(2.6cqw * var(--ts));
+  color: var(--hero-ink-faint);
+}
+.description {
+  margin-top: calc(2.8cqw * var(--ts));
+  font-size: calc(2.5cqw * var(--ts));
+  line-height: 1.45;
+}
+.highlights {
+  margin-top: calc(2cqw * var(--ts));
+  display: grid;
+  gap: calc(1cqw * var(--ts));
+  font-size: calc(2.4cqw * var(--ts));
+  line-height: 1.4;
+}
+.highlights li {
+  display: grid;
+  grid-template-columns: 3cqw 1fr;
+}
+.highlights li::before {
+  content: '—';
+  color: var(--color-evidence-red-dim);
+}
+.focusLabel {
+  margin-top: calc(3cqw * var(--ts));
+  padding-bottom: calc(1cqw * var(--ts));
+  border-bottom: 1px solid var(--material-edge);
+  font-weight: 400;
+  font-size: calc(2cqw * var(--ts));
+}
+.focus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4cqw;
+  margin-top: calc(1.8cqw * var(--ts));
+}
+.focus li {
+  padding: 0.9cqw 1.8cqw;
+  border: 1px solid var(--material-edge);
+  background: var(--dossier-field-fill);
+  font-size: calc(2.1cqw * var(--ts));
+  letter-spacing: 0.04em;
+}
+.counter {
+  position: absolute;
+  left: 7cqw;
+  bottom: 6.5cqw;
+  font-size: calc(2cqw * var(--ts));
+  letter-spacing: 0.14em;
+  color: var(--hero-ink-faint);
+}
+
+/* ---------- Attached prints ----------
+   Two photographic prints below the written account: the first held by a pin,
+   the second by a strip of tape, joined by a short length of string. Raised off
+   the page, so they carry a tighter, darker shadow than the sheet itself. */
+.prints {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4cqw;
+  /* Narrower than the text column: the prints are attached to the page, not
+     the page's subject, and the written account has to stay the first thing
+     read. Also keeps the block inside a sheet of this proportion. */
+  width: 74%;
+  margin: 5cqw 0 4cqw;
+}
+.thread {
+  /* Sits between the two fixings, above the prints' upper edges. */
+  z-index: var(--z-strings);
+  opacity: 0.75;
+}
+.print {
+  position: relative;
+  margin: 0;
+  padding: 1.4cqw 1.4cqw 1.8cqw;
+  background-color: var(--color-paper-photo);
+  background-image: var(--paper-grain);
+  background-size: var(--paper-grain-size);
+  box-shadow: var(--paper-cast, var(--shadow-low));
+  filter: var(--lit-filter);
+  --elev: var(--elev-photo);
+  --grain-z: -1;
+  rotate: -2.4deg;
+}
+.print[data-hold='1'] {
+  rotate: 1.8deg;
+}
+/* Inside a projected plane the grain is an image layer, never a repeating tile. */
+:global([data-grain='layer']) .print {
+  background-image: none;
+}
+.print img,
+.pending {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--color-bg-charcoal);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.28);
+}
+.pending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4cqw;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+.pending > span {
+  font-size: 6cqw;
+  opacity: 0.45;
+}
+.pending small {
+  font-size: 1.7cqw;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.print figcaption {
+  margin-top: 1.2cqw;
+  font-family: var(--font-hand);
+  font-size: calc(2.7cqw * var(--ts, 1));
+  line-height: 1.1;
+}
+/* The pin grips the print's own top edge — it never floats on bare paper. */
+.print .pin {
+  position: absolute;
+  left: 50%;
+  top: -0.6cqw;
+  width: 3cqw;
+  height: 3cqw;
+  transform: translate(-50%, 0);
+  background: var(--hero-pin-light);
+  box-shadow:
+    inset -0.3cqw 0.3cqw 0.3cqw rgb(255 196 176 / 0.35),
+    inset 0.4cqw -0.4cqw 0.5cqw rgb(40 4 2 / 0.55),
+    var(--shadow-contact);
+  z-index: var(--z-pins);
+}
+.tape {
+  position: absolute;
+  left: 32%;
+  top: -1.6cqw;
+  width: 36%;
+  height: 4cqw;
+  background: var(--hero-tape);
+  box-shadow: var(--shadow-contact);
+  rotate: -2.5deg;
+  z-index: var(--z-pins);
+}
+
+/* ---------- Index tabs + record counter ----------
+   File furniture, not page content: they belong to the folder, so they sit
+   outside the sheet stack and never turn with a page. */
+.navigation {
+  /* Folder furniture, not a page: its own positioned box (matching the page
+     well exactly) so `z-index` actually establishes a stacking context here
+     — sheets carry z-index 0-3 for their own turn animation, and without an
+     explicit position this rule was a no-op, leaving the tabs painted in DOM
+     order instead of reliably above every sheet. */
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-navigation);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+.navigation[data-enabled='true'] {
+  opacity: 1;
+  /* The desk plane disables pointer events; these are the one exception. */
+  pointer-events: auto;
+}
+.tabs {
+  position: absolute;
+  left: 100%;
+  top: 9%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6cqw;
+}
+.tab {
+  writing-mode: vertical-rl;
+  padding: 3.4cqw 2cqw;
+  min-height: 24cqw;
+  min-width: 4.2cqw;
+  border: 1px solid var(--material-edge);
+  border-left: 0;
+  border-radius: 0 var(--dossier-tab-radius) var(--dossier-tab-radius) 0;
+  background: var(--color-paper-manila);
+  color: var(--hero-ink);
+  box-shadow: var(--shadow-contact);
+  font-family: var(--font-display);
+  font-size: 2.3cqw;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  /* Belt-and-braces: the whole protruding tab is the hit target, and it must
+     stay clickable regardless of anything the ancestor chain does. */
+  pointer-events: auto;
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+.tab:hover {
+  transform: translateX(0.5cqw);
+}
+.tab[aria-pressed='true'] {
+  background: var(--color-paper-aged);
+  color: var(--color-evidence-red-dim);
+  transform: translateX(1.2cqw);
+}
+.pager {
+  position: absolute;
+  left: 7cqw;
+  right: 7cqw;
+  bottom: 4.5cqw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2cqw;
+  font-family: var(--font-display);
+  color: var(--hero-ink);
+}
+.position {
+  font-size: 2.1cqw;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.step {
+  display: grid;
+  place-items: center;
+  width: 6cqw;
+  height: 6cqw;
+  border: 1px solid var(--material-edge);
+  background: var(--dossier-field-fill);
+  color: inherit;
+  font-size: 2.8cqw;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.step:hover:not(:disabled) {
+  background: var(--color-paper-aged);
+}
+.step:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.navigation :global(button):focus-visible {
+  outline: 2px solid var(--color-evidence-red);
+  outline-offset: 2px;
+}
+
+/* ---------- Stacked (mobile / fallback) ----------
+   No turn and no two-page spread: one sheet in flow, tabs above it as a row. */
+:global([data-layout='stacked']) .stack {
+  height: auto;
+}
+:global([data-layout='stacked']) .stack > .sheet {
+  position: relative;
+  inset: auto;
+}
+:global([data-layout='stacked']) .sheet {
+  --ts: 1.55;
+}
+:global([data-layout='stacked']) .document {
+  padding: 7cqw 6cqw 8cqw;
+}
+:global([data-layout='stacked']) .counter,
+:global([data-layout='stacked']) .folio {
+  position: static;
+  display: block;
+  margin-top: calc(3cqw * var(--ts, 1));
+}
+:global([data-layout='stacked']) .prints {
+  grid-template-columns: 1fr;
+  gap: 7cqw;
+  width: 100%;
+}
+:global([data-layout='stacked']) .print {
+  width: 86%;
+  margin-inline: auto;
+}
+:global([data-layout='stacked']) .pending > span {
+  font-size: 11cqw;
+}
+:global([data-layout='stacked']) .pending small {
+  font-size: 3.2cqw;
+}
+:global([data-layout='stacked']) .print figcaption {
+  font-size: 5cqw;
+}
+:global([data-layout='stacked']) .thread {
+  display: none;
+}
+:global([data-layout='stacked']) .navigation {
+  position: relative;
+  margin-top: var(--space-4);
+}
+:global([data-layout='stacked']) .tabs {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex-direction: row;
+  gap: var(--space-1);
+}
+:global([data-layout='stacked']) .tab {
+  writing-mode: horizontal-tb;
+  flex: 1;
+  min-height: 44px;
+  padding: var(--space-2);
+  border: 1px solid var(--material-edge);
+  border-radius: var(--dossier-tab-radius) var(--dossier-tab-radius) 0 0;
+  font-size: var(--text-xs);
+}
+:global([data-layout='stacked']) .tab:hover,
+:global([data-layout='stacked']) .tab[aria-pressed='true'] {
+  transform: none;
+}
+:global([data-layout='stacked']) .pager {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  margin-top: var(--space-3);
+  justify-content: space-between;
+}
+:global([data-layout='stacked']) .position {
+  font-size: var(--text-xs);
+}
+:global([data-layout='stacked']) .step {
+  width: 44px;
+  height: 44px;
+  font-size: var(--text-lg);
+}

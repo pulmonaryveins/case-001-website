@@ -50,7 +50,7 @@
 /* File stocks sit closer to the lamp than the board: a touch more tungsten. */
 .back,
 .sheet,
-.page,
+.pageWell,
 .face {
   --warm: calc(var(--base-warm) + 0.1);
 }
@@ -58,9 +58,9 @@
   transform-style: preserve-3d;
   transform: translateZ(1px);
 }
-/* Under-sheet and top page: only their edges show while the file is closed. */
+/* Under-sheet and page well: only their edges show while the file is closed. */
 .sheet,
-.page {
+.pageWell {
   position: absolute;
   --elev: 0.6;
 }
@@ -68,11 +68,15 @@
 .sheet {
   inset: 2.2% 2.4% 2.4% 3.4%;
 }
-.page {
+/* The well is not a sheet itself — it is where sheets lie. It carries no paper
+   material and no filter, so the stack inside keeps the room's 3D space and a
+   turning page is foreshortened by the same camera as the cover. */
+.pageWell {
   /* Inside the back panel's margins, so manila frames the page once open. */
   inset: 3% 3.6% 3.4% 4.2%;
-  --paper-base: var(--paper-ivory);
+  transform-style: preserve-3d;
   container-type: inline-size;
+  --paper-base: var(--paper-ivory);
   --paper-ink: var(--hero-ink, var(--color-text-on-paper));
 }
 .pagesShade {
@@ -214,9 +218,10 @@
 .dossier[data-layout='stacked'] .liftShadow {
   display: none;
 }
-.dossier[data-layout='stacked'] .page {
+.dossier[data-layout='stacked'] .pageWell {
   position: relative;
   inset: auto;
+  transform-style: flat;
 }
 .dossier[data-layout='stacked'] .back {
   height: calc(100cqw / 0.77);
@@ -232,7 +237,12 @@
 .dossier[data-layout='stacked'] .outside {
   --lit: var(--dossier-lit);
 }
+/* Stacked only: the identification sheet reads as a full-width page in flow. */
 .dossier[data-layout='stacked'] .insidePage {
+  position: relative;
+  container-type: inline-size;
+  --paper-base: var(--paper-ivory);
+  --paper-ink: var(--hero-ink, var(--color-text-on-paper));
   --paper-padding: 5%;
   --elev: var(--elev-paper);
 }
@@ -240,7 +250,7 @@
 /* Pieces lying on a face or page are already lit by it: keep their own
    contact/cast shadows, but don't apply the lamp a second time. */
 .face :global(.evidence-light),
-.page :global(.evidence-light) {
+.insidePage :global(.evidence-light) {
   --lit: 1;
   --warm: 0;
 }

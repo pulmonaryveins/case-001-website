@@ -367,8 +367,12 @@
   top: 60%;
   left: 8%;
   font-size: var(--text-sm);
-  opacity: 0.7;
-  mix-blend-mode: multiply;
+  /* Evidence red, clearly legible: `multiply` over the near-black obscured
+     photo previously crushed the red to near-black too. Worn-ink mask still
+     gives it the same distressed, physically-stamped character as the
+     dossier's stamps, without depending on the dossier's own --ink-wear. */
+  opacity: 0.88;
+  --ink-wear: var(--ink-wear-texture);
 }
 .subjectTape {
   position: absolute;

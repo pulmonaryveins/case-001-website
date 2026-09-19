@@ -80,14 +80,36 @@ export interface EducationEntry {
   location: string;
 }
 
+/**
+ * One chapter of the subject's career. Each entry fills one right-hand dossier
+ * page, so the shape is deliberately page-sized: adding an entry adds a page,
+ * and nothing in the scene is indexed against a fixed number of them.
+ */
 export interface Experience {
   id: string;
+  organization: string;
   role: string;
-  company: string;
-  startDate: string;
-  endDate: string | 'present';
+  /** Display string, e.g. "September 2023 — Present". */
+  dateRange: string;
   description: string;
+  /** 2-4 concise responsibility/impact lines. */
   highlights: string[];
+  focusAreas: string[];
+  /** Exactly two prints attached to the page. */
+  images: [ExperienceImage, ExperienceImage];
+  /** Sortable values for later; the page prints `dateRange`. */
+  startDate?: string;
+  endDate?: string | 'present';
+}
+
+/** `src` stays optional so a page renders an empty print until an asset exists. */
+export interface ExperienceImage {
+  src?: string;
+  srcSet?: string;
+  alt: string;
+  caption: string;
+  width: number;
+  height: number;
 }
 
 export type ProjectCategory = 'coding' | 'uiux' | 'graphic-design';
