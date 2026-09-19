@@ -1,0 +1,38 @@
+/* Hidden unless an ancestor plane opts in; the owner's CSS tile applies otherwise.
+   Sits above the owner's background and below its ink. Owners whose content is
+   in flow (a photo, a strip of tape) set --grain-z: -1 instead. */
+.layer {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: var(--grain-z, 0);
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+:global([data-grain='layer']) .layer {
+  display: block;
+}
+/* Finish/sheen that sat above the tile in the owner's background stack. */
+.layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--grain-finish, none);
+  background-size: cover;
+}
+/* Reset owner rules that target any descendant img (photo filters, sizing). */
+.layer .tile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  height: auto;
+  /* A sheet larger than the baked grid gets the bitmap stretched to cover. */
+  min-width: 100%;
+  min-height: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  filter: none;
+  box-shadow: none;
+}

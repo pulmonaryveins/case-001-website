@@ -338,6 +338,14 @@ wood/cork raster slots can supply final materials later.
 CameraRig projects the board's 1000 × 625 pixel plane using its world matrix
 and the perspective camera's view/projection matrices into a CSS matrix3d.
 The same projection updates during camera entrance and viewport resize.
+The matrix is written straight to `style.transform`: routing it through an
+inherited custom property restyled every piece of evidence in the plane on
+each camera frame. Because the projection changes the plane's scale, the
+compositor re-rasters it while the camera moves, so nothing inside a plane may
+use a repeating background image — a tiled background is re-sampled on every
+re-raster and dominated scroll frame time. Paper grain inside the planes is a
+baked bitmap shown as an `<img>` (`components/evidence/Grain`), and the desk
+evidence draws its depth with box-shadows instead of a drop-shadow chain.
 GSAP animates the camera inside the shared context lifecycle; resizing
 reframes without replaying the entrance. No user camera controls.
 

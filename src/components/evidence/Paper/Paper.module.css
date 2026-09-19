@@ -13,6 +13,8 @@
   --paper-edge-light: rgb(255 238 208 / 0.4);
   --paper-edge-shade: rgb(58 42 24 / 0.2);
   --paper-edge-wear: rgb(118 90 52 / 0.12);
+  /* Outer depth as box-shadows, where a scene opts in (see DeskEvidence). */
+  --paper-cast: 0 0 transparent;
 }
 /* Material stack (top -> bottom): finish, supplied scan or shared grain, base tone.
    Edges: faint wear inward, a lamp-facing (upper/right) highlight and a shaded
@@ -27,6 +29,7 @@
   background-size: cover, var(--paper-texture-size, 256px);
   border-radius: var(--paper-edge-radius);
   box-shadow:
+    var(--paper-cast),
     inset -1px 1px 0 var(--paper-edge-light, transparent),
     inset 1px -1px 0 var(--paper-edge-shade, transparent),
     inset 0 0 14px var(--paper-edge-wear, transparent);
@@ -34,6 +37,12 @@
   mask-size: 100% 100%;
   mask-repeat: no-repeat;
   mask-mode: alpha;
+}
+/* On the projected 3D planes the grain is an image layer (see Grain): the
+   background drops the tile and the finish is redrawn above the grain. */
+:global([data-grain='layer']) .grained {
+  background-image: none;
+  --grain-finish: var(--paper-finish);
 }
 .surface::after {
   content: '';

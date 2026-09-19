@@ -1,4 +1,4 @@
-import type { CSSProperties, ImgHTMLAttributes } from 'react';
+import type { CSSProperties, ImgHTMLAttributes, ReactNode } from 'react';
 import styles from './Polaroid.module.css';
 
 export interface PolaroidProps {
@@ -10,6 +10,8 @@ export interface PolaroidProps {
   srcSet?: string;
   sizes?: string;
   textureSrc?: string;
+  /** Rendered behind the photo, e.g. a Grain layer for the print stock. */
+  children?: ReactNode;
 }
 
 export function Polaroid({
@@ -21,6 +23,7 @@ export function Polaroid({
   srcSet,
   sizes,
   textureSrc,
+  children,
 }: PolaroidProps) {
   return (
     <figure
@@ -32,6 +35,7 @@ export function Polaroid({
         } as CSSProperties
       }
     >
+      {children}
       <img
         src={src}
         srcSet={srcSet}

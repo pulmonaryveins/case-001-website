@@ -75,11 +75,17 @@
   background-image: var(--paper-grain);
   background-size: var(--paper-grain-size);
   box-shadow:
+    var(--paper-cast, 0 0 transparent),
     inset -1px 1px 0 var(--paper-edge-light),
     inset 1px -1px 0 var(--paper-edge-shade);
   rotate: 2.5deg;
   --elev: var(--elev-photo);
   filter: var(--lit-filter);
+}
+/* 3D desk plane: grain is a Grain image layer (see Grain), not a background tile. */
+:global([data-grain='layer']) .portrait {
+  background-image: none;
+  --grain-z: -1;
 }
 .portrait img {
   width: 100%;

@@ -1,4 +1,4 @@
-import { Paper, Stamp } from '../../components/evidence';
+import { Grain, Paper, Stamp } from '../../components/evidence';
 import { investigation as caseFile } from '../../data/investigation';
 import { profile } from '../../data/profile';
 import styles from './SubjectFile.module.css';
@@ -26,6 +26,7 @@ export function IdentitySheet() {
           </span>
         </h2>
         <figure className={`${styles.portrait} evidence-light`} data-portrait>
+          <Grain />
           <img
             src={profile.portrait.src}
             alt={profile.portrait.alt}

@@ -113,7 +113,6 @@
   background: none;
   box-shadow: none;
   transform-origin: 0 0;
-  transform: var(--plane-registration);
   z-index: var(--z-paper);
 }
 /* Desk surface: the same projected-plane treatment, lying on the wood. */
@@ -128,7 +127,6 @@
   width: var(--desk-overlay-width);
   height: var(--desk-overlay-height);
   transform-origin: 0 0;
-  transform: var(--plane-registration);
   /* Lets the dossier cover rise off the desk with the camera's true perspective. */
   transform-style: preserve-3d;
   z-index: var(--z-paper);
@@ -401,6 +399,18 @@
     0 72%,
     2% 44%
   );
+}
+/* 3D planes: grain is a Grain image layer (see Grain), not a background tile. */
+:global([data-grain='layer']) .photo figure,
+:global([data-grain='layer']) .visualEvidence {
+  background-image: none;
+  /* Photo and print sit in flow above the stock, so the grain goes behind them. */
+  --grain-z: -1;
+}
+:global([data-grain='layer']) .subjectTape {
+  background-image: var(--hero-tape-image);
+  --grain-z: -1;
+  --grain-finish: linear-gradient(200deg, rgb(255 246 222 / 0.24), transparent 55%);
 }
 
 /* ---------- Discipline evidence ---------- */

@@ -85,6 +85,7 @@ export function CameraRig({ planes, state, invalidateRef, onReady }: Props) {
   const reported = useRef(false);
   const written = useRef<string[]>([]);
   const path = useMemo(() => new CameraPath(), []);
+  const keyed = useRef({ aspect: 0, push: -1 });
   const scratch = useMemo(
     () => ({
       position: new Vector3(),
@@ -102,12 +103,28 @@ export function CameraRig({ planes, state, invalidateRef, onReady }: Props) {
     };
   }, [invalidate, invalidateRef]);
 
+  // If the environment goes away (e.g. WebGL fails), the DOM layers return to flat layout.
+  useEffect(
+    () => () => {
+      written.current = [];
+      planes.forEach(({ element }) => {
+        element.current?.style.removeProperty('transform');
+        element.current?.style.removeProperty('visibility');
+      });
+    },
+    [planes],
+  );
+
   // Runs on every rendered frame (intro, scroll, resize, dust ticks) but only
   // touches the DOM when a projection actually changed.
   useFrame(({ camera, size, gl }) => {
     if (!(camera instanceof PerspectiveCamera)) return;
     const aspect = size.width / size.height;
-    path.update(aspect, state.current.push);
+    // Key poses depend only on viewport shape and the intro dolly.
+    if (aspect !== keyed.current.aspect || state.current.push !== keyed.current.push) {
+      keyed.current = { aspect, push: state.current.push };
+      path.update(aspect, state.current.push);
+    }
     path.sample(state.current.travel, state.current.inspect, scratch.position, scratch.target);
     camera.fov = shot.fov;
     camera.aspect = aspect;
@@ -136,7 +153,9 @@ export function CameraRig({ planes, state, invalidateRef, onReady }: Props) {
         element.style.visibility = 'hidden';
       } else {
         element.style.visibility = '';
-        element.style.setProperty('--plane-registration', value);
+        // Direct transform write: an inherited custom property here would
+        // restyle every piece of evidence in the plane on each camera frame.
+        element.style.transform = value;
       }
     });
 

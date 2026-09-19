@@ -7,3 +7,4 @@ export * from './Stamp';
 export * from './CaseLabel';
 export * from './Dossier';
 export * from './PaperClip';
+export * from './Grain';

@@ -8,7 +8,18 @@ import {
   useState,
   type CSSProperties,
 } from 'react';
-import { EvidenceString, Paper, Polaroid, PushPin, Stamp } from '../../components/evidence';
+import {
+  bakeGrain,
+  EvidenceString,
+  Grain,
+  GrainResolution,
+  grainTiles,
+  type GrainJob,
+  Paper,
+  Polaroid,
+  PushPin,
+  Stamp,
+} from '../../components/evidence';
 import { investigation as content } from '../../data/investigation';
 import { heroAssets } from '../../data/heroAssets';
 import { EnvironmentBoundary } from './environment/EnvironmentBoundary';
@@ -27,6 +38,34 @@ import { BREAKPOINTS, useMediaQuery } from '../../hooks/useMediaQuery';
 import { gsap, ScrollTrigger } from '../../lib/gsap';
 import philippinesMap from '../../assets/evidence/location/philippines-map.svg';
 import styles from './HeroScene.module.css';
+
+// Supplied paper scans (none yet) are baked alongside the shared stocks.
+const scans = [
+  ...new Set(
+    Object.values(heroAssets.paper)
+      .map((material) => material.textureSrc)
+      .filter((src): src is string => Boolean(src)),
+  ),
+];
+
+/**
+ * Grain bitmap resolution per projected plane, near its on-screen scale at
+ * rest: the board is seen at ~1.2x its 1000px plane, the open dossier at ~2x.
+ * Quarter steps keep the bake keys stable; capped to bound GPU memory.
+ */
+function grainResolutions() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const step = (scale: number) => Math.min(2.5, Math.round(scale * dpr * 4) / 4);
+  return { board: step(1.25), desk: step(2) };
+}
+function grainJobs({ board, desk }: ReturnType<typeof grainResolutions>): GrainJob[] {
+  const paper = [grainTiles.paper.src, ...scans];
+  return [
+    ...paper.map((src) => ({ src, tile: grainTiles.paper.tile, resolution: board })),
+    ...paper.map((src) => ({ src, tile: grainTiles.paper.tile, resolution: desk })),
+    { ...grainTiles.fiber, resolution: desk },
+  ];
+}
 
 const HeroEnvironmentCanvas = lazy(() => import('./environment/HeroEnvironmentCanvas'));
 
@@ -102,6 +141,9 @@ export function HeroScene() {
   const [environmentReady, setEnvironmentReady] = useState(false);
   const [environmentFailed, setEnvironmentFailed] = useState(false);
   const [contentReady, setContentReady] = useState(false);
+  // Grain baked into bitmaps: the projected planes then use image layers (see Grain).
+  const [grainBaked, setGrainBaked] = useState(false);
+  const [grainScale] = useState(grainResolutions);
   const onReady = useCallback(() => setEnvironmentReady(true), []);
   const onFailure = useCallback(() => setEnvironmentFailed(true), []);
   const reducedMotion = useReducedMotion();
@@ -113,14 +155,24 @@ export function HeroScene() {
 
   useEffect(() => {
     let active = true;
-    waitForContent(overlay.current!).then(
-      () => active && setContentReady(true),
-      () => active && setContentReady(true),
-    );
+    Promise.all([
+      waitForContent(overlay.current!).catch(() => {}),
+      // Mobile never projects planes, so it keeps the CSS tiles and skips baking.
+      window.matchMedia(BREAKPOINTS.mobile).matches
+        ? false
+        : bakeGrain(grainJobs(grainScale)).then(
+            () => true,
+            () => false,
+          ),
+    ]).then(([, baked]) => {
+      if (!active) return;
+      setGrainBaked(baked);
+      setContentReady(true);
+    });
     return () => {
       active = false;
     };
-  }, []);
+  }, [grainScale]);
 
   useEffect(() => {
     if (rendering !== '3d' || environmentReady) return;
@@ -297,6 +349,8 @@ export function HeroScene() {
     '--hero-cork-blend': heroAssets.corkIsPlaceholder ? 'multiply' : 'normal',
     '--hero-tape-image': heroAssets.tape ? `url("${heroAssets.tape}")` : 'none',
   } as CSSProperties;
+  // Only the camera-projected planes need image grain; flat layouts keep CSS tiles.
+  const grain = rendering === '3d' && grainBaked ? 'layer' : undefined;
   const layout = mobile ? mobileLayout : desktopLayout;
   const pins = content.branches.map((branch) => pinFor(layout[branch.id as keyof Layout], 1));
   const subjectPin = pinFor(layout.subject, 1.4);
@@ -335,156 +389,171 @@ export function HeroScene() {
           </EnvironmentBoundary>
         </div>
       )}
-      <div ref={overlay} className={styles.board} data-board data-stage>
-        {!mobile && (
-          <Paper
-            className={`${styles.mapSheet} ${styles.placed} ${styles.mounted}`}
-            style={placed(layout.map)}
-            variant="map"
-            rotation={-1.2}
-            data-evidence
-            data-lit
-          >
-            <span className={styles.mapLabel}>{content.location.label}</span>
-            <img
-              src={philippinesMap}
-              alt={content.location.alt}
-              width={600}
-              height={1000}
-              loading="eager"
-              decoding="async"
-            />
-            <span className={styles.mapCoords}>{content.location.coordinates}</span>
-          </Paper>
-        )}
-        <Paper
-          className={`${styles.caseHeading} ${styles.placed} ${styles.flush}`}
-          style={placed(layout.heading)}
-          variant="document"
-          material={heroAssets.paper.document}
-          rotation={1.2}
-          data-evidence
-          data-lit
-        >
-          <span className={styles.fileTag}>{content.eyebrow}</span>
-          <h1 id="case-heading">{content.caseNumber}</h1>
-          <span className={styles.subjectLine}>SUBJECT: {content.subject}</span>
-          <span className={styles.status}>
-            STATUS: <em>{content.status}</em>
-          </span>
-        </Paper>
-        <div
-          className={`${styles.subject} ${styles.placed}`}
-          style={placed(layout.subject)}
-          data-evidence
-          data-lit
-        >
-          <Paper
-            className={`${styles.backingUnder} ${styles.stack}`}
-            variant="document"
-            material={heroAssets.paper.document}
-            rotation={-3.5}
-            aria-hidden="true"
-          />
-          <Paper
-            className={`${styles.backing} ${styles.flush}`}
-            variant="photoBacking"
-            material={heroAssets.paper.photoBacking}
-            rotation={3}
-            aria-hidden="true"
-          />
-          <div className={styles.photo}>
-            <Polaroid
-              src={content.photoSrc}
-              alt={content.photoAlt}
-              caption={content.annotation}
-              rotation={-2}
-              loading="eager"
-              srcSet={content.photoSrcSet}
-              sizes="(max-width: 640px) 48vw, (max-width: 1024px) 27vw, 320px"
-              textureSrc={heroAssets.paper.photoBacking.textureSrc}
-            />
-          </div>
-          <span className={styles.subjectTape} aria-hidden="true" />
-          <div className={styles.subjectStamp}>
-            <Stamp text={content.subject} rotation={-5} />
-          </div>
-        </div>
-        <ul
-          className={styles.evidenceList}
-          aria-label="Disciplines connected to the unknown subject"
-        >
-          {content.branches.map((branch) => (
-            <li
-              key={branch.id}
-              className={`${styles.branch} ${styles.placed} ${styles[branch.id]}`}
-              style={placed(layout[branch.id as keyof Layout])}
+      <div ref={overlay} className={styles.board} data-board data-stage data-grain={grain}>
+        <GrainResolution.Provider value={grainScale.board}>
+          {!mobile && (
+            <Paper
+              className={`${styles.mapSheet} ${styles.placed} ${styles.mounted}`}
+              style={placed(layout.map)}
+              variant="map"
+              rotation={-1.2}
               data-evidence
               data-lit
             >
-              {!mobile && (
-                <figure className={styles.visualEvidence}>
-                  <img
-                    src={branch.evidenceSrc}
-                    srcSet={branch.evidenceSrcSet}
-                    sizes="(max-width: 1024px) 25vw, 300px"
-                    alt={branch.evidenceAlt}
-                    loading="eager"
-                    decoding="async"
-                    width={880}
-                    height={660}
-                  />
-                </figure>
-              )}
-              <Paper
-                className={`${styles.note} ${styles.lifted}`}
-                variant={noteVariant(branch.id)}
-                material={heroAssets.paper[noteVariant(branch.id)]}
-                rotation={noteRotation[branch.id]}
+              <span className={styles.mapLabel}>{content.location.label}</span>
+              <img
+                src={philippinesMap}
+                alt={content.location.alt}
+                width={600}
+                height={1000}
+                loading="eager"
+                decoding="async"
+              />
+              <span className={styles.mapCoords}>{content.location.coordinates}</span>
+            </Paper>
+          )}
+          <Paper
+            className={`${styles.caseHeading} ${styles.placed} ${styles.flush}`}
+            style={placed(layout.heading)}
+            variant="document"
+            material={heroAssets.paper.document}
+            rotation={1.2}
+            data-evidence
+            data-lit
+          >
+            <span className={styles.fileTag}>{content.eyebrow}</span>
+            <h1 id="case-heading">{content.caseNumber}</h1>
+            <span className={styles.subjectLine}>SUBJECT: {content.subject}</span>
+            <span className={styles.status}>
+              STATUS: <em>{content.status}</em>
+            </span>
+          </Paper>
+          <div
+            className={`${styles.subject} ${styles.placed}`}
+            style={placed(layout.subject)}
+            data-evidence
+            data-lit
+          >
+            <Paper
+              className={`${styles.backingUnder} ${styles.stack}`}
+              variant="document"
+              material={heroAssets.paper.document}
+              rotation={-3.5}
+              aria-hidden="true"
+            />
+            <Paper
+              className={`${styles.backing} ${styles.flush}`}
+              variant="photoBacking"
+              material={heroAssets.paper.photoBacking}
+              rotation={3}
+              aria-hidden="true"
+            />
+            <div className={styles.photo}>
+              <Polaroid
+                src={content.photoSrc}
+                alt={content.photoAlt}
+                caption={content.annotation}
+                rotation={-2}
+                loading="eager"
+                srcSet={content.photoSrcSet}
+                sizes="(max-width: 640px) 48vw, (max-width: 1024px) 27vw, 320px"
+                textureSrc={heroAssets.paper.photoBacking.textureSrc}
               >
-                <span className={styles.evidenceNumber}>EVIDENCE / {branch.number}</span>
-                <h2>{branch.title}</h2>
-                <span className={styles.detail}>{branch.detail}</span>
-              </Paper>
-            </li>
-          ))}
-        </ul>
-        <div className={styles.connections} data-connections data-lit aria-hidden="true">
-          {pins.map((pin, i) => (
-            <EvidenceString
-              key={content.branches[i].id}
-              from={subjectPin}
-              to={pin}
-              sag={mobile ? 2 : [2.5, -1.5, 3.5, 1][i]}
-              viewBox="0 0 100 100"
-              className={styles.string}
-            />
-          ))}
-        </div>
-        <div className={styles.pins} data-connections data-lit aria-hidden="true">
-          {[subjectPin, ...pins, ...(mobile ? [] : [mapPin])].map((pin, i) => (
-            <PushPin
-              key={i}
-              className={styles.pin}
-              style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-            />
-          ))}
-        </div>
-        <Paper
-          className={`${styles.annotation} ${styles.placed} ${styles.flush}`}
-          style={placed(layout.annotation)}
-          variant="aged"
-          material={heroAssets.paper.aged}
-          rotation={-2.5}
-          data-evidence
-          data-lit
-        >
-          <p>{content.question}</p>
-        </Paper>
+                <Grain />
+              </Polaroid>
+            </div>
+            <span className={styles.subjectTape} aria-hidden="true">
+              <Grain tile={128} />
+            </span>
+            <div className={styles.subjectStamp}>
+              <Stamp text={content.subject} rotation={-5} />
+            </div>
+          </div>
+          <ul
+            className={styles.evidenceList}
+            aria-label="Disciplines connected to the unknown subject"
+          >
+            {content.branches.map((branch) => (
+              <li
+                key={branch.id}
+                className={`${styles.branch} ${styles.placed} ${styles[branch.id]}`}
+                style={placed(layout[branch.id as keyof Layout])}
+                data-evidence
+                data-lit
+              >
+                {!mobile && (
+                  <figure className={styles.visualEvidence}>
+                    <Grain />
+                    <img
+                      src={branch.evidenceSrc}
+                      srcSet={branch.evidenceSrcSet}
+                      sizes="(max-width: 1024px) 25vw, 300px"
+                      alt={branch.evidenceAlt}
+                      loading="eager"
+                      decoding="async"
+                      width={880}
+                      height={660}
+                    />
+                  </figure>
+                )}
+                <Paper
+                  className={`${styles.note} ${styles.lifted}`}
+                  variant={noteVariant(branch.id)}
+                  material={heroAssets.paper[noteVariant(branch.id)]}
+                  rotation={noteRotation[branch.id]}
+                >
+                  <span className={styles.evidenceNumber}>EVIDENCE / {branch.number}</span>
+                  <h2>{branch.title}</h2>
+                  <span className={styles.detail}>{branch.detail}</span>
+                </Paper>
+              </li>
+            ))}
+          </ul>
+          <div className={styles.connections} data-connections data-lit aria-hidden="true">
+            {pins.map((pin, i) => (
+              <EvidenceString
+                key={content.branches[i].id}
+                from={subjectPin}
+                to={pin}
+                sag={mobile ? 2 : [2.5, -1.5, 3.5, 1][i]}
+                viewBox="0 0 100 100"
+                className={styles.string}
+              />
+            ))}
+          </div>
+          <div className={styles.pins} data-connections data-lit aria-hidden="true">
+            {[subjectPin, ...pins, ...(mobile ? [] : [mapPin])].map((pin, i) => (
+              <PushPin
+                key={i}
+                className={styles.pin}
+                style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
+              />
+            ))}
+          </div>
+          <Paper
+            className={`${styles.annotation} ${styles.placed} ${styles.flush}`}
+            style={placed(layout.annotation)}
+            variant="aged"
+            material={heroAssets.paper.aged}
+            rotation={-2.5}
+            data-evidence
+            data-lit
+          >
+            <p>{content.question}</p>
+          </Paper>
+        </GrainResolution.Provider>
       </div>
       {rendering === '3d' ? (
-        <div ref={deskOverlay} className={styles.deskPlane} data-board data-stage>
-          <DeskEvidence layout="plane" />
+        <div
+          ref={deskOverlay}
+          className={styles.deskPlane}
+          data-board
+          data-stage
+          data-grain={grain}
+        >
+          <GrainResolution.Provider value={grainScale.desk}>
+            <DeskEvidence layout="plane" />
+          </GrainResolution.Provider>
         </div>
       ) : (
         <div ref={deskOverlay} className={styles.deskPanel} data-stage>

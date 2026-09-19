@@ -1,5 +1,6 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import type { PaperMaterialAsset } from '../../../types/portfolio';
+import { Grain } from '../Grain';
 import styles from './Paper.module.css';
 
 export interface PaperProps extends HTMLAttributes<HTMLDivElement> {
@@ -38,13 +39,24 @@ export function Paper({
     '--paper-edge-mask': material?.edgeMaskSrc ? `url("${material.edgeMaskSrc}")` : 'none',
     '--paper-wear-image': material?.wearOverlaySrc ? `url("${material.wearOverlaySrc}")` : 'none',
   } as CSSProperties;
+  // Image-based stocks get a Grain layer (used on the 3D planes); map stock is gradient-only.
+  const grained = resolvedVariant !== 'map';
   return (
     <div
       className={[styles.paper, styles[resolvedVariant], className].filter(Boolean).join(' ')}
       style={materialStyle}
       {...rest}
     >
-      <div className={styles.surface} data-masked={Boolean(material?.edgeMaskSrc)}>
+      <div
+        className={[styles.surface, grained && styles.grained].filter(Boolean).join(' ')}
+        data-masked={Boolean(material?.edgeMaskSrc)}
+      >
+        {grained && (
+          <Grain
+            stock={resolvedVariant === 'manila' ? 'fiber' : 'paper'}
+            src={material?.textureSrc}
+          />
+        )}
         <div className={styles.content}>{children}</div>
       </div>
     </div>

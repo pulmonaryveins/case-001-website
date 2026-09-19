@@ -11,6 +11,23 @@
 .paper {
   --elev: var(--elev-paper);
 }
+/* Same three layers as .evidence-light (edge, contact, cast), drawn as
+   box-shadows: the camera lean and the turning cover re-raster these sheets
+   every frame, and a drop-shadow chain costs an offscreen blur per sheet each
+   time. The sheets are plain rectangles, so the result matches; box-shadow
+   blur is twice the drop-shadow value for the same Gaussian. The lamp
+   response stays a colour filter. */
+.desk :global(.evidence-light) {
+  --lit-filter: brightness(var(--lit, 1)) sepia(var(--warm, 0));
+  --paper-cast:
+    -0.4px 0.6px 0 var(--paper-edge),
+    calc(var(--sx, -0.3) * var(--elev, 1) * 0.25px)
+      calc(var(--sy, 0.3) * var(--elev, 1) * 0.25px + 0.4px) calc(1.2px + var(--elev, 1) * 0.7px)
+      rgb(var(--shadow-ink) / calc(0.32 + var(--elev, 1) * 0.04)),
+    calc(var(--sx, -0.3) * var(--elev, 1) * 1.3px)
+      calc(var(--sy, 0.3) * var(--elev, 1) * 1.3px + var(--elev, 1) * 0.35px)
+      calc(2px + var(--elev, 1) * 3px) rgb(var(--shadow-ink) / calc(0.12 + var(--elev, 1) * 0.04));
+}
 
 .looseSheet {
   position: absolute;
