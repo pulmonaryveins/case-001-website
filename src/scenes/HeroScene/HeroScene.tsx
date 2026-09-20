@@ -22,6 +22,7 @@ import {
   Stamp,
 } from '../../components/evidence';
 import { investigation as content } from '../../data/investigation';
+import { archive as archiveCopy } from '../../data/archive';
 import { heroAssets } from '../../data/heroAssets';
 import { EnvironmentBoundary } from './environment/EnvironmentBoundary';
 import { evidenceLight, type SurfaceName } from './environment/lighting';
@@ -36,7 +37,12 @@ import {
 } from '../AboutScene/dossierTimeline';
 import { addDossierPages } from '../AboutScene/dossierPagesTimeline';
 import { DossierPageController, pageCount, pageScrollLength } from '../AboutScene/pageController';
+import { ProjectArchiveController } from '../ProjectsScene/archiveController';
+import { addProjectArchive, archiveScrollLength } from '../ProjectsScene/archiveTimeline';
+import { ArchiveScreen } from '../ProjectsScene/ArchiveScreen';
+import { DiskArchive } from '../ProjectsScene/DiskArchive';
 import { experience } from '../../data/experience';
+import { projectCategories, projects } from '../../data/projects';
 import { useGSAPContext } from '../../hooks/useGSAPContext';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { BREAKPOINTS, useMediaQuery } from '../../hooks/useMediaQuery';
@@ -139,10 +145,12 @@ export function HeroScene() {
   const scope = useRef<HTMLElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
   const deskOverlay = useRef<HTMLDivElement>(null);
+  const screenOverlay = useRef<HTMLDivElement>(null);
+  const diskOverlay = useRef<HTMLDivElement>(null);
   const invalidateRef = useRef<(() => void) | null>(null);
   const introPlayed = useRef(false);
   // Mutable camera state shared with the 3D rig; written only by GSAP (intro + scroll).
-  const cameraState = useRef<CameraState>({ push: 0, travel: 0, inspect: 0 });
+  const cameraState = useRef<CameraState>({ push: 0, travel: 0, inspect: 0, archive: 0 });
   const [environmentReady, setEnvironmentReady] = useState(false);
   const [environmentFailed, setEnvironmentFailed] = useState(false);
   const [contentReady, setContentReady] = useState(false);
@@ -158,6 +166,17 @@ export function HeroScene() {
   // tabs and the arrows all resolve through this single controller. Page count
   // follows the data, so a new experience record adds a page by itself.
   const pages = useMemo(() => new DossierPageController(pageCount(experience.length)), []);
+  // Scene 06. One owner for the workstation: the scrubbed tour, the disks and
+  // the dividers all resolve through it, and it latches the boot so reverse
+  // scrolling never replays the power-on.
+  const arch = useMemo(
+    () =>
+      new ProjectArchiveController(
+        projects,
+        projectCategories.map((category) => category.id),
+      ),
+    [],
+  );
 
   const rendering = mobile || environmentFailed ? 'fallback' : '3d';
   const ready = contentReady && (rendering === 'fallback' || environmentReady);
@@ -182,6 +201,14 @@ export function HeroScene() {
       active = false;
     };
   }, [grainScale]);
+
+  useEffect(() => {
+    arch.setReducedMotion(reducedMotion);
+  }, [arch, reducedMotion]);
+
+  useEffect(() => arch.connect(() => invalidateRef.current?.()), [arch]);
+
+  useEffect(() => () => arch.destroy(), [arch]);
 
   useEffect(() => {
     if (rendering !== '3d' || environmentReady) return;
@@ -299,12 +326,14 @@ export function HeroScene() {
     const journeyLength = world.travel.distance[size];
     const dossierLength = world.travel.dossier[size];
     const pagesLength = pageScrollLength(pages.count);
+    const archiveLength = archiveScrollLength(arch.featured.length);
     const stage = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
         trigger: root,
         start: 'top top',
-        end: () => `+=${window.innerHeight * (journeyLength + dossierLength + pagesLength)}`,
+        end: () =>
+          `+=${window.innerHeight * (journeyLength + dossierLength + pagesLength + archiveLength)}`,
         pin: true,
         scrub: true,
         invalidateOnRefresh: true,
@@ -352,10 +381,20 @@ export function HeroScene() {
       revealedAt,
       reducedMotion,
     );
+    // Scene 06 continues along the same desk on the same scrub: the camera
+    // crosses to the workstation, it powers on once, and the featured tour runs.
+    addProjectArchive(
+      stage,
+      arch,
+      cameraState.current,
+      journeyLength + dossierLength + pagesLength,
+      reducedMotion,
+      invalidate,
+    );
     // Pin the timeline length to the scroll length so progress maps 1:1.
-    stage.set({}, {}, journeyLength + dossierLength + pagesLength);
+    stage.set({}, {}, journeyLength + dossierLength + pagesLength + archiveLength);
     return reading.disconnect;
-  }, [rendering, tablet, reducedMotion, pages]);
+  }, [rendering, tablet, reducedMotion, pages, arch]);
 
   // Fallback (mobile / no WebGL): no pinned stage. The stacked file opens once
   // it is being read and closes again if the reader scrolls back above it.
@@ -373,6 +412,20 @@ export function HeroScene() {
     pages.setEnabled(true);
     return () => pages.setEnabled(false);
   }, [rendering, reducedMotion, pages]);
+
+  // Fallback: the workstation panel powers on the first time it is reached.
+  useGSAPContext(scope, () => {
+    if (rendering !== 'fallback' || !screenOverlay.current) return;
+    ScrollTrigger.create({
+      trigger: screenOverlay.current,
+      start: 'top 75%',
+      once: true,
+      onEnter: () => {
+        arch.power.value = 1;
+        arch.applyPower();
+      },
+    });
+  }, [rendering, arch]);
 
   const materialStyle = {
     '--hero-cork-texture': `url("${heroAssets.cork}")`,
@@ -408,6 +461,9 @@ export function HeroScene() {
               <HeroEnvironmentCanvas
                 overlay={overlay}
                 deskOverlay={deskOverlay}
+                screenOverlay={screenOverlay}
+                diskOverlay={diskOverlay}
+                crtGlow={arch.glow}
                 camera={cameraState}
                 invalidateRef={invalidateRef}
                 tablet={tablet}
@@ -588,6 +644,34 @@ export function HeroScene() {
       ) : (
         <div ref={deskOverlay} className={styles.deskPanel} data-stage>
           <DeskEvidence layout="panel" controller={pages} flat />
+        </div>
+      )}
+      {rendering === '3d' ? (
+        <>
+          <div
+            ref={screenOverlay}
+            className={styles.screenPlane}
+            data-stage
+            role="region"
+            aria-label={archiveCopy.screen}
+          >
+            <ArchiveScreen controller={arch} />
+          </div>
+          <div ref={diskOverlay} className={styles.diskPlane} data-stage>
+            <DiskArchive controller={arch} />
+          </div>
+        </>
+      ) : (
+        <div className={styles.archivePanel} data-layout="stacked" data-stage>
+          <div
+            ref={screenOverlay}
+            className={styles.screenPanel}
+            role="region"
+            aria-label={archiveCopy.screen}
+          >
+            <ArchiveScreen controller={arch} />
+          </div>
+          <DiskArchive controller={arch} />
         </div>
       )}
       <div className={styles.cut} data-cut aria-hidden="true" />

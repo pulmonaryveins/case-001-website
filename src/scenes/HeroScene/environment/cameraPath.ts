@@ -9,9 +9,11 @@ export interface CameraState {
   travel: number;
   /** Dossier opening: 0 = desk arrival frame, 1 = leaning in over the open file. */
   inspect: number;
+  /** Project archive: 0 = over the dossier, 1 = settled on the workstation. */
+  archive: number;
 }
 
-const { camera: shot, travel, desk } = settings;
+const { camera: shot, travel, desk, workstation: station } = settings;
 const tangent = Math.tan((shot.fov * Math.PI) / 360);
 const scratch = new Vector3();
 
@@ -44,6 +46,8 @@ export class CameraPath {
   private readonly targetCurve = new CatmullRomCurve3(this.targets, false, 'centripetal');
   private readonly inspectPosition = new Vector3();
   private readonly inspectTarget = new Vector3();
+  private readonly archivePosition = new Vector3();
+  private readonly archiveTarget = new Vector3();
 
   update(aspect: number, push: number) {
     const [p0, p1, p2, p3] = this.positions;
@@ -87,13 +91,27 @@ export class CameraPath {
       yaw,
       fitDistance(lean.frame.width, lean.frame.height, aspect),
     );
+
+    // Archive — the same desk, further along it: a near-eye-level look at the
+    // workstation. Only reached through `archive`, after the dossier chapter.
+    const shot06 = narrow ? station.camera.narrow : station.camera;
+    this.archiveTarget.set(...station.camera.focus);
+    orbit(
+      this.archivePosition,
+      this.archiveTarget,
+      radians(shot06.pitch),
+      radians(station.camera.yaw),
+      fitDistance(shot06.frame.width, shot06.frame.height, aspect),
+    );
   }
 
   /**
-   * Camera pose for journey `value` (0-1, Hero hold and easing applied) plus
-   * the dossier `inspect` lean (0-1). inspect = 0 is exactly the desk arrival.
+   * Camera pose for journey `value` (0-1, Hero hold and easing applied), the
+   * dossier `inspect` lean (0-1) and the `archive` traverse (0-1). inspect = 0
+   * is exactly the desk arrival; archive = 0 is exactly wherever the dossier
+   * chapter ended.
    */
-  sample(value: number, inspect: number, position: Vector3, target: Vector3) {
+  sample(value: number, inspect: number, archive: number, position: Vector3, target: Vector3) {
     const moving = Math.min(1, Math.max(0, (value - travel.hold) / (1 - travel.hold)));
     const eased = 0.5 - 0.5 * Math.cos(Math.PI * moving);
     this.positionCurve.getPoint(eased, position);
@@ -103,6 +121,12 @@ export class CameraPath {
         scratch.subVectors(this.inspectPosition, this.positions[3]).multiplyScalar(inspect),
       );
       target.add(scratch.subVectors(this.inspectTarget, this.targets[3]).multiplyScalar(inspect));
+    }
+    // Continues from wherever the dossier left the camera, so the move across
+    // the desk is one unbroken travel rather than a cut to a new scene.
+    if (archive > 0) {
+      position.lerp(this.archivePosition, archive);
+      target.lerp(this.archiveTarget, archive);
     }
   }
 }

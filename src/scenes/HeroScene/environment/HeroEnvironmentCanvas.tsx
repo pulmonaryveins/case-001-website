@@ -9,11 +9,16 @@ import { Desk3D } from './Desk3D';
 import { Lamp3D } from './Lamp3D';
 import { ForegroundProps3D } from './ForegroundProps3D';
 import { Dust3D } from './Dust3D';
+import { Workstation3D } from './Workstation3D';
 import { environment as settings } from './config';
 
 interface Props {
   overlay: RefObject<HTMLDivElement | null>;
   deskOverlay: RefObject<HTMLDivElement | null>;
+  screenOverlay: RefObject<HTMLDivElement | null>;
+  diskOverlay: RefObject<HTMLDivElement | null>;
+  /** CRT emission; Workstation3D reads it each rendered frame. */
+  crtGlow: { value: number };
   camera: RefObject<CameraState>;
   invalidateRef: RefObject<(() => void) | null>;
   tablet: boolean;
@@ -25,6 +30,9 @@ interface Props {
 export default function HeroEnvironmentCanvas({
   overlay,
   deskOverlay,
+  screenOverlay,
+  diskOverlay,
+  crtGlow,
   camera,
   invalidateRef,
   tablet,
@@ -34,6 +42,8 @@ export default function HeroEnvironmentCanvas({
 }: Props) {
   const board = useRef<Group>(null);
   const deskPlane = useRef<Group>(null);
+  const screenPlane = useRef<Group>(null);
+  const diskPlane = useRef<Group>(null);
   // Every DOM layer that must read as part of the 3D room, projected by one camera.
   const planes = useMemo<RegisteredPlane[]>(
     () => [
@@ -51,8 +61,22 @@ export default function HeroEnvironmentCanvas({
         size: [settings.desk.plane.width, settings.desk.plane.depth],
         face: 0,
       },
+      {
+        element: screenOverlay,
+        object: screenPlane,
+        pixels: settings.workstation.screen.pixels,
+        size: settings.workstation.screen.size,
+        face: 0,
+      },
+      {
+        element: diskOverlay,
+        object: diskPlane,
+        pixels: settings.workstation.disks.pixels,
+        size: settings.workstation.disks.size,
+        face: 0,
+      },
     ],
-    [overlay, deskOverlay],
+    [overlay, deskOverlay, screenOverlay, diskOverlay],
   );
   const canvas = useRef<HTMLCanvasElement | null>(null);
   useEffect(
@@ -85,6 +109,12 @@ export default function HeroEnvironmentCanvas({
         <InvestigationBoard3D board={board} />
         <Desk3D plane={deskPlane} />
         <Lamp3D />
+        <Workstation3D
+          screenPlane={screenPlane}
+          diskPlane={diskPlane}
+          glow={crtGlow}
+          shadows={!tablet}
+        />
         {!tablet && <ForegroundProps3D />}
         <Dust3D
           count={tablet ? settings.dust.countTablet : settings.dust.count}

@@ -58,6 +58,42 @@ export const environment = {
       narrow: { pitch: 66, frame: { width: 4.55, height: 5 } },
     },
   },
+  // Scene 06 workstation: further along the same desk, to the right of the
+  // dossier. Only the physical form is 3D; the screen and the disk labels are
+  // DOM registered onto the two planes below (see Workstation3D).
+  workstation: {
+    // Sits on the run of desk to the right of the dossier. The desk slab spans
+    // x -9..9; the machine (-1.45 local) and the case (+3.5 local) both stay
+    // inside it at this position and yaw.
+    position: [5.3, 0, 3.4] as Vec3,
+    yaw: -0.3,
+    screen: {
+      // 4:3 tube. `pixels` is the DOM screen's own coordinate space; `size` is
+      // the glass in world units, so the two must keep the same ratio.
+      pixels: [640, 480] as const,
+      size: [2.06, 1.545] as const,
+      tilt: -0.045,
+      color: '#8fe3a0',
+      distance: 7,
+      light: 5,
+    },
+    disks: {
+      offset: [2.55, 0, 0.05] as Vec3,
+      yaw: -0.2,
+      tilt: -0.1,
+      pixels: [420, 560] as const,
+      size: [1.42, 1.893] as const,
+    },
+    // Where the camera settles for the archive chapter. Framed to hold the
+    // monitor and the case together, at close to desk-eye level.
+    camera: {
+      focus: [6.3, -2.0, 3.8] as Vec3,
+      pitch: 13,
+      yaw: 9,
+      frame: { width: 6.4, height: 4 },
+      narrow: { pitch: 20, frame: { width: 4.4, height: 5.2 } },
+    },
+  },
   // Single light story. The DOM lighting bridge (lighting.ts) reads these same values.
   lamp: {
     // Desk lamp forward of the board's upper-right corner; its lower half enters frame.
@@ -95,6 +131,8 @@ export const environment = {
     inside: '#e7d7b8',
     fill: '#8d9aa6',
     folder: '#6d5a3f',
+    computer: '#c4b79c',
+    computerShade: '#9d927b',
     paper: '#b9ad92',
   },
   dpr: 1.5,

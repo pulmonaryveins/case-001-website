@@ -125,7 +125,13 @@ export function CameraRig({ planes, state, invalidateRef, onReady }: Props) {
       keyed.current = { aspect, push: state.current.push };
       path.update(aspect, state.current.push);
     }
-    path.sample(state.current.travel, state.current.inspect, scratch.position, scratch.target);
+    path.sample(
+      state.current.travel,
+      state.current.inspect,
+      state.current.archive,
+      scratch.position,
+      scratch.target,
+    );
     camera.fov = shot.fov;
     camera.aspect = aspect;
     camera.position.copy(scratch.position);

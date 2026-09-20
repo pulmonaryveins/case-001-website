@@ -112,28 +112,56 @@ export interface ExperienceImage {
   height: number;
 }
 
-export type ProjectCategory = 'coding' | 'uiux' | 'graphic-design';
+/**
+ * PROJECT ARCHIVE (Scene 06). The four categories are the four disciplines the
+ * investigation has been building toward, and they are also the four physical
+ * dividers in the disk case, so the scene is generated entirely from this data:
+ * adding a record adds a disk, and marking it `featured` adds it to the scrolled
+ * tour. Nothing in the scene is indexed against a fixed number of projects.
+ */
+export type ProjectCategory = 'development' | 'graphic' | 'video' | 'uiux';
 
+/** `src` stays optional so the CRT prints an archival "media missing" frame. */
 export interface ProjectImage {
-  src: string;
+  src?: string;
+  srcSet?: string;
   alt: string;
+  /** Short caption printed under the preview, e.g. "Order flow". */
   label?: string;
+  width?: number;
+  height?: number;
+}
+
+/** Never preloaded: the CRT loads a source only once the reader asks to play. */
+export interface ProjectVideo {
+  src?: string;
+  posterSrc?: string;
+  /** WebVTT track. Required alongside any real footage. */
+  captionsSrc?: string;
 }
 
 export interface Project {
   id: string;
-  caseNumber: string;
+  /** Printed on the disk sticker and the CRT header, e.g. "DEV / 01". */
+  archiveNumber: string;
   title: string;
+  /** Second line of the disk sticker, e.g. "Food Ordering System". */
+  subtitle: string;
   category: ProjectCategory;
-  year: number;
+  /** One or two sentences, printed on the CRT beside the preview. */
   description: string;
-  role: string;
   tools: string[];
-  status: 'completed' | 'in-progress' | 'archived';
-  previewImage: string;
   images: ProjectImage[];
+  /** Present on video records; the CRT becomes the player when asked. */
+  video?: ProjectVideo;
+  role?: string;
+  year?: number;
   liveUrl?: string;
   repoUrl?: string;
+  /** Part of the scrolled tour. At most three per category (see projects.ts). */
+  featured: boolean;
+  /** Demo record: the CRT marks it so placeholder copy is never read as real work. */
+  isPlaceholder: boolean;
 }
 
 export interface VideoProject {

@@ -1,0 +1,385 @@
+/*
+ * Inside the CRT glass. Sized in container units of the screen plane, so the
+ * same markup reads identically projected into the monitor (640 x 480 px) and
+ * in the stacked mobile panel. Tube character is three static layers — nothing
+ * here animates per frame, and no CSS-tiled background exists inside a
+ * registered plane (see --crt-scanlines in tokens.css).
+ */
+.screen {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--crt-screen);
+  color: var(--crt-phosphor);
+  font-family: var(--font-display);
+}
+
+/* The plane itself takes no pointer events (see HeroScene.module.css). The
+   screen's own controls are the exception, and only once it has booted — the
+   glass never swallows clicks meant for anything behind it. */
+.screen[data-boot='ready'] :global(button),
+.screen[data-boot='ready'] :global(a),
+.screen[data-boot='ready'] :global(video) {
+  pointer-events: auto;
+}
+
+/* Everything readable lives here; the overlays sit above it. */
+.phosphor {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: 3.4cqw 4cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6cqw;
+  text-shadow: var(--crt-glow);
+}
+
+/* Brightness response: the tube dips while a disk is read, and blips on a
+   frame change. Opacity only — the 3D screen light dips with it. */
+.screen[data-loading='true'] .phosphor {
+  opacity: 0.55;
+}
+.screen[data-refreshing='true'] .phosphor {
+  opacity: 0.82;
+}
+.phosphor {
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+/* ---------- Boot ---------- */
+.boot {
+  margin: 0;
+  font-size: 2.9cqw;
+  line-height: 1.75;
+  letter-spacing: 0.08em;
+  white-space: pre-wrap;
+}
+.caret {
+  display: inline-block;
+  width: 1.6cqw;
+  height: 2.6cqw;
+  background: var(--crt-phosphor);
+  vertical-align: -0.3cqw;
+}
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2cqw;
+  font-size: 2.5cqw;
+  letter-spacing: 0.1em;
+}
+.counter {
+  color: var(--crt-phosphor-dim);
+}
+.chapter {
+  margin: 0;
+  padding-bottom: 1.4cqw;
+  border-bottom: 1px solid var(--crt-rule);
+  font-weight: 400;
+  font-size: 3.6cqw;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Body: viewer left, record right ---------- */
+.body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.02fr 1fr;
+  gap: 3.4cqw;
+}
+.viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6cqw;
+  min-width: 0;
+}
+.preview {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--crt-rule);
+  background: #000;
+}
+/* Artwork keeps its own colour: no green recolouring of real work. */
+.art,
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1cqw;
+  margin: 0;
+  color: var(--crt-phosphor-faint);
+  text-align: center;
+}
+.missing > span {
+  font-size: 4.4cqw;
+  letter-spacing: 0.18em;
+}
+.missing small {
+  font-size: 2cqw;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.play {
+  position: absolute;
+  inset: auto auto 2cqw 50%;
+  transform: translateX(-50%);
+  padding: 1.1cqw 3cqw;
+  border: 1px solid var(--crt-phosphor);
+  background: rgb(7 19 11 / 0.82);
+  color: var(--crt-phosphor);
+  font-family: inherit;
+  font-size: 2.2cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* ---------- Frame strip ---------- */
+.frames {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+}
+.thumbs {
+  display: flex;
+  gap: 1.2cqw;
+  flex: 1;
+  min-width: 0;
+}
+.thumb {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 1px solid var(--crt-rule);
+  background: var(--crt-fill);
+  color: var(--crt-phosphor-dim);
+  font-family: inherit;
+  font-size: 2cqw;
+  cursor: pointer;
+  overflow: hidden;
+}
+.thumbs li {
+  flex: 1;
+  min-width: 0;
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.thumb[aria-pressed='true'] {
+  border-color: var(--crt-phosphor);
+  color: var(--crt-phosphor);
+  background: rgb(134 224 140 / 0.16);
+}
+.step {
+  display: grid;
+  place-items: center;
+  width: 4.4cqw;
+  height: 4.4cqw;
+  border: 1px solid var(--crt-rule);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 2.4cqw;
+  line-height: 1;
+  cursor: pointer;
+}
+.frameCount {
+  font-size: 2cqw;
+  letter-spacing: 0.1em;
+  color: var(--crt-phosphor-dim);
+  white-space: nowrap;
+}
+
+/* ---------- Record ---------- */
+.record {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4cqw;
+  min-width: 0;
+  overflow: hidden;
+}
+.title {
+  margin: 0;
+  font-weight: 400;
+  font-size: 3.3cqw;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+.unverified {
+  margin: 0;
+  padding: 0.7cqw 1.4cqw;
+  border: 1px solid var(--color-evidence-red);
+  color: #ff8b80;
+  font-size: 1.9cqw;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  align-self: flex-start;
+}
+.description {
+  margin: 0;
+  font-size: 2.4cqw;
+  line-height: 1.5;
+  color: var(--crt-phosphor);
+}
+.tools {
+  padding-top: 1.2cqw;
+  border-top: 1px solid var(--crt-rule);
+}
+.tools h4 {
+  margin: 0 0 1cqw;
+  font-weight: 400;
+  font-size: 2.1cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--crt-phosphor-dim);
+}
+.tools ul {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6cqw 2cqw;
+  font-size: 2.3cqw;
+}
+.meta {
+  display: grid;
+  gap: 0.6cqw;
+  font-size: 2.2cqw;
+  color: var(--crt-phosphor-dim);
+}
+.meta span {
+  display: inline-block;
+  min-width: 9cqw;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.links {
+  margin-top: auto;
+  display: grid;
+  gap: 1cqw;
+  font-size: 2.4cqw;
+}
+.links a {
+  color: var(--crt-phosphor);
+  text-decoration: underline;
+  text-underline-offset: 0.5cqw;
+}
+.noLinks {
+  margin: 0;
+  color: var(--crt-phosphor-faint);
+  font-size: 2.1cqw;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 2cqw;
+  padding-top: 1.2cqw;
+  border-top: 1px solid var(--crt-rule);
+  font-size: 2cqw;
+  letter-spacing: 0.08em;
+  color: var(--crt-phosphor-dim);
+}
+.status {
+  white-space: nowrap;
+}
+
+/* ---------- Tube ---------- */
+.scanlines,
+.vignette,
+.interference {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.scanlines {
+  z-index: 3;
+  /* One stretched SVG; its lines are tiled inside the image, not by CSS. */
+  background-image: var(--crt-scanlines);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+}
+.vignette {
+  z-index: 4;
+  background: var(--crt-vignette);
+}
+/* A single band, parked off-screen; only shown during a disk read. */
+.interference {
+  z-index: 5;
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 44%,
+    rgb(134 224 140 / 0.14) 48%,
+    rgb(255 255 255 / 0.12) 50%,
+    transparent 56%
+  );
+}
+.screen[data-loading='true'] .interference {
+  opacity: 1;
+  animation: sweep 0.6s var(--ease-standard);
+}
+@keyframes sweep {
+  from {
+    transform: translateY(-58%);
+  }
+  to {
+    transform: translateY(58%);
+  }
+}
+
+.screen :global(button):focus-visible,
+.screen :global(a):focus-visible {
+  outline: 2px solid var(--crt-phosphor);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen[data-loading='true'] .interference {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ---------- Stacked (mobile / fallback) ---------- */
+:global([data-layout='stacked']) .screen {
+  aspect-ratio: 4 / 3;
+  height: auto;
+}
+:global([data-layout='stacked']) .body {
+  grid-template-columns: 1fr;
+  gap: 2cqw;
+  overflow-y: auto;
+}
+:global([data-layout='stacked']) .preview {
+  aspect-ratio: 16 / 10;
+  flex: none;
+}
+:global([data-layout='stacked']) .tools ul {
+  grid-template-columns: 1fr;
+}
+:global([data-layout='stacked']) .footer .status {
+  display: none;
+}

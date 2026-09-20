@@ -73,10 +73,10 @@ practical.
 | Skills         | Evidence notes / annotations               |
 | Education      | Document / record                          |
 | Experience     | Evidence timeline                          |
-| Projects       | Physical case folders                      |
+| Projects       | Archive disks read on a CRT workstation    |
 | Project images | Photographs / Polaroids / printed evidence |
-| Video projects | VHS tapes                                  |
-| Video player   | CRT television                             |
+| Video projects | Archive disks (Video divider)              |
+| Video player   | The archive CRT                            |
 | Certificates   | Physical documents                         |
 | Awards         | Medals / badges                            |
 | Contact        | Business card / final case folder          |
@@ -190,29 +190,32 @@ earlier plan for a separate evidence timeline laid across the desk: the file
 metaphor already carries the narrative, and closing and re-staging the
 dossier broke the continuity the desk arrival establishes.)
 
-**06 — Project Archive.** Projects appear as unopened physical case
-folders, showing project name, category, year, preview photograph.
-Categories: frontend/coding, UI/UX, graphic design.
+**06 — Project Archive.** The camera continues along the same desk to an
+archival workstation: a late-80s CRT and, beside it, a rugged disk case whose
+disks are split behind four typed dividers — Development, Graphic, Video,
+UI/UX. The machine powers on once, and the CRT becomes the project viewer.
 
-**07 — Project Case File.** Opening a folder reveals title, description,
-role, tools, year/status, links, attached screenshots/photographs.
-Additional imagery may be inspected through a modal/lightbox such as "View
-All Evidence."
+Two navigation models coexist deliberately: **scrolling is a curated tour**
+through the featured records only (at most three per category, so the section
+cannot grow without bound), while **the disks are the full archive** — every
+record has one, and picking one is a manual choice the tour must not override.
 
-**08 — Video Evidence.** A physical-media scene: CRT television, VCR, VHS
-tapes. The visitor selects a tape; it activates/inserts; the CRT briefly
-shows static; the selected video plays within the television. Video
-controls must remain accessible. Do not preload the complete video library.
+This supersedes the earlier plan for unopened case folders (06), a separate
+opened-folder case file (07) and a separate VHS/CRT video scene (08). Video
+records are now a category of the archive rather than their own chapter: the
+CRT is already the right player, and a second physical-media scene repeated
+the same idea. `components/media/VHS` and `data/videos.ts` are consequently
+unused; leave them until a scene actually needs them.
 
-**09 — Awards / Certificates.** Certificates, medals, badges, credentials
+**07 — Awards / Certificates.** Certificates, medals, badges, credentials
 appear as physical evidence. Important documents must remain
 readable/inspectable.
 
-**10 — Contact.** Final folder containing contact information and a
+**08 — Contact.** Final folder containing contact information and a
 business card. An old telephone or related desk prop may support the
 composition. Possible CTA: `START A NEW CASE` / `START A CONVERSATION`.
 
-**11 — Case Solved.** The final folder closes. Potential copy: `CASE 0926`
+**09 — Case Solved.** The final folder closes. Potential copy: `CASE 0926`
 / `INVESTIGATION COMPLETE` / "Thank you for investigating." / "The next
 case could be yours." / `GET IN TOUCH`. The environment eventually fades
 into darkness.
@@ -433,8 +436,9 @@ SCENE 02 — HERO / INVESTIGATION BOARD
 SCENE 03 — BOARD → DESK TRANSITION (ends on the closed dossier)
 SCENE 04 — SUBJECT DOSSIER / ABOUT (opens the dossier)
 SCENE 05 — EXPERIENCE (read as further pages of the open dossier)
+SCENE 06 — PROJECT ARCHIVE (the workstation further along the same desk)
 
-Next milestone: SCENE 06 — PROJECT ARCHIVE.
+Next milestone: SCENE 07 — AWARDS / CERTIFICATES.
 
 How the room works (read before extending it):
 
@@ -463,6 +467,28 @@ How the room works (read before extending it):
   straight to the DOM by a painter; React re-renders only when the integer
   page changes. Page order and count come from the data (About, Education,
   then one page per `experience` record).
+- The archive workstation (Scene 06) continues the same pinned timeline and the
+  same camera. `cameraState.archive` (0 = wherever the dossier left the camera,
+  1 = settled on the workstation) blends toward one more key pose in
+  `cameraPath`, so crossing the desk is travel, not a cut. `Workstation3D` owns
+  only the physical form — CRT, base, keyboard, disk case — plus a cool point
+  light whose intensity follows the controller's `glow`, which is what keeps the
+  screen's light in step with the boot and each disk read.
+- The CRT screen and the disk case's face are two more `RegisteredPlane`s. All
+  archive text, every disk label, the links and the video player stay DOM on
+  those planes: readable, focusable, and never a WebGL texture. The planes carry
+  `pointer-events: none`; only the archive's own controls re-enable it, and the
+  screen's only after it has booted.
+- `ProjectsScene/archiveController.ts` owns the chapter's state the way
+  `DossierPageController` owns the dossier's. Boot is latched so reverse
+  scrolling never replays the power-on. Scroll and manual selection write the
+  same `active` record but cannot fight: a manual pick holds the screen until
+  the scrubbed tour reaches a _different_ featured slot, at which point the
+  reader has demonstrably moved on. Boot and disk-load own separate GSAP
+  timelines — sharing one let a fast scroll kill the boot mid-sequence.
+- Scene 06 content is generated entirely from `data/projects.ts`: adding a
+  record adds a disk, and `featured` decides whether the scrolled tour stops at
+  it. Nothing is indexed against a fixed project count.
 - DOM lighting on any plane comes from `environment/lighting.ts`
   (`evidenceLight(u, v, surface)`), driven by the same lamp config as three.js.
 

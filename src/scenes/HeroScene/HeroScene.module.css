@@ -627,3 +627,49 @@
     z-index: calc(var(--z-paper) - 1);
   }
 }
+
+/* ---------- Scene 06: workstation planes ----------
+   Two more registered DOM layers on the same camera: the CRT's screen and the
+   disk case's front face. Sized in their own pixel space (see config.ts);
+   CameraRig writes the projection straight to `transform`. */
+.screenPlane,
+.diskPlane {
+  display: none;
+}
+.scene[data-rendering='3d'] .screenPlane,
+.scene[data-rendering='3d'] .diskPlane {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  z-index: var(--z-paper);
+  /* Only the archive's own controls take pointer events (see their modules). */
+  pointer-events: none;
+}
+.scene[data-rendering='3d'] .screenPlane {
+  width: 640px;
+  height: 480px;
+}
+.scene[data-rendering='3d'] .diskPlane {
+  width: 420px;
+  height: 560px;
+}
+
+/* Fallback / mobile: the workstation is recomposed as a readable panel —
+   screen first, then the disk tray underneath it. */
+.archivePanel {
+  display: none;
+}
+.scene[data-rendering='fallback'] .archivePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  order: 3;
+  width: min(100%, 560px);
+  margin-top: var(--space-8);
+}
+.screenPanel {
+  container-type: inline-size;
+  width: 100%;
+}
