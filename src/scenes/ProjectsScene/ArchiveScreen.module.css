@@ -34,7 +34,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.6cqw;
-  text-shadow: var(--crt-glow);
+  text-shadow: none;
 }
 
 /* Brightness response: the tube dips while a disk is read, and blips on a
@@ -92,8 +92,8 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.02fr 1fr;
-  gap: 3.4cqw;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 2.6cqw;
 }
 .viewer {
   display: flex;
@@ -125,7 +125,7 @@
   align-items: center;
   gap: 1cqw;
   margin: 0;
-  color: var(--crt-phosphor-faint);
+  color: var(--crt-phosphor-dim);
   text-align: center;
 }
 .missing > span {
@@ -201,7 +201,7 @@
   background: transparent;
   color: inherit;
   font-family: inherit;
-  font-size: 2.4cqw;
+  font-size: 2.7cqw;
   line-height: 1;
   cursor: pointer;
 }
@@ -230,16 +230,16 @@
 .unverified {
   margin: 0;
   padding: 0.7cqw 1.4cqw;
-  border: 1px solid var(--color-evidence-red);
-  color: #ff8b80;
-  font-size: 1.9cqw;
+  border: 1px solid var(--crt-rule);
+  color: var(--crt-phosphor-dim);
+  font-size: 2.2cqw;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   align-self: flex-start;
 }
 .description {
   margin: 0;
-  font-size: 2.4cqw;
+  font-size: 2.7cqw;
   line-height: 1.5;
   color: var(--crt-phosphor);
 }
@@ -277,7 +277,7 @@
   margin-top: auto;
   display: grid;
   gap: 1cqw;
-  font-size: 2.4cqw;
+  font-size: 2.7cqw;
 }
 .links a {
   color: var(--crt-phosphor);
@@ -286,7 +286,7 @@
 }
 .noLinks {
   margin: 0;
-  color: var(--crt-phosphor-faint);
+  color: var(--crt-phosphor-dim);
   font-size: 2.1cqw;
 }
 
@@ -319,7 +319,7 @@
   background-image: var(--crt-scanlines);
   background-size: 100% 100%;
   background-repeat: no-repeat;
-  opacity: 0.5;
+  opacity: 0.12;
 }
 .vignette {
   z-index: 4;
@@ -382,4 +382,58 @@
 }
 :global([data-layout='stacked']) .footer .status {
   display: none;
+}
+
+/* The screen follows the glass corners; content remains flat and crisp. */
+.screen {
+  border-radius: 5% / 6%;
+}
+.screen[data-boot='off'] .phosphor {
+  visibility: hidden;
+}
+.subtitle {
+  display: block;
+  font-size: 2.65cqw;
+  margin-top: 1cqw;
+}
+:global([data-layout='stacked']) .screen {
+  aspect-ratio: auto;
+  min-height: 520px;
+  border: 12px solid var(--crt-bezel);
+  border-radius: 18px;
+}
+:global([data-layout='stacked']) .phosphor {
+  gap: 12px;
+  padding: 18px 14px;
+}
+:global([data-layout='stacked']) .record {
+  overflow: visible;
+  gap: 12px;
+}
+:global([data-layout='stacked']) .description,
+:global([data-layout='stacked']) .tools ul,
+:global([data-layout='stacked']) .links,
+:global([data-layout='stacked']) .subtitle {
+  font-size: 15px;
+}
+:global([data-layout='stacked']) .title,
+:global([data-layout='stacked']) .chapter {
+  font-size: 20px;
+}
+:global([data-layout='stacked']) .header,
+:global([data-layout='stacked']) .footer,
+:global([data-layout='stacked']) .unverified,
+:global([data-layout='stacked']) .noLinks,
+:global([data-layout='stacked']) .missing small,
+:global([data-layout='stacked']) .tools h4 {
+  font-size: 12px;
+}
+:global([data-layout='stacked']) .step,
+:global([data-layout='stacked']) .thumb {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 15px;
+}
+:global([data-layout='stacked']) .frameCount {
+  font-size: 12px;
 }

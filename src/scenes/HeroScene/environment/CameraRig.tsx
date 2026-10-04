@@ -15,6 +15,8 @@ export interface RegisteredPlane {
   size: readonly [number, number];
   /** Offset of the DOM face along the plane's local +Z. */
   face: number;
+  /** Chapter visibility also gates hit testing for DOM surfaces without depth occlusion. */
+  visible?: () => boolean;
 }
 
 interface Props {
@@ -150,9 +152,10 @@ export function CameraRig({ planes, state, invalidateRef, onReady }: Props) {
         .multiply(object.matrixWorld)
         .multiply(scratch.pixels[i]);
       const m = scratch.clip.elements;
-      const value = planeVisible(m, plane.pixels)
-        ? `matrix3d(${registrationMatrix(m, size.width, size.height).join(',')})`
-        : 'hidden';
+      const value =
+        (plane.visible?.() ?? true) && planeVisible(m, plane.pixels)
+          ? `matrix3d(${registrationMatrix(m, size.width, size.height).join(',')})`
+          : 'hidden';
       if (value === written.current[i]) return;
       written.current[i] = value;
       if (value === 'hidden') {

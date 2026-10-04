@@ -56,18 +56,20 @@ export function ArchiveScreen({ controller }: { controller: ProjectArchiveContro
               <div className={styles.record}>
                 <h3 className={styles.title}>
                   {project.title}
-                  {project.subtitle ? ` — ${project.subtitle}` : ''}
+                  {project.subtitle && <span className={styles.subtitle}>{project.subtitle}</span>}
                 </h3>
                 {project.isPlaceholder && <p className={styles.unverified}>{copy.unverified}</p>}
                 <p className={styles.description}>{project.description}</p>
 
-                {project.tools.length > 0 && (
+                {project.tools.some((tool) => !tool.startsWith('[')) && (
                   <section className={styles.tools}>
                     <h4>{copy.tools}</h4>
                     <ul>
-                      {project.tools.map((tool, index) => (
-                        <li key={`${tool}-${index}`}>{tool}</li>
-                      ))}
+                      {project.tools
+                        .filter((tool) => !tool.startsWith('['))
+                        .map((tool, index) => (
+                          <li key={`${tool}-${index}`}>{tool}</li>
+                        ))}
                     </ul>
                   </section>
                 )}
@@ -140,7 +142,7 @@ function Preview({ controller }: { controller: ProjectArchiveController }) {
   const image = project.images[state.image];
   const video = project.video;
 
-  if (video && state.playing) {
+  if (video?.src && state.playing) {
     return (
       <div className={styles.preview}>
         {/* Loaded only after the reader pressed play; never autoplayed. */}
@@ -178,7 +180,7 @@ function Preview({ controller }: { controller: ProjectArchiveController }) {
           <small>{copy.mediaMissing}</small>
         </p>
       )}
-      {video && !state.playing && (
+      {video?.src && !state.playing && (
         <button type="button" className={styles.play} onClick={controller.play}>
           {copy.play}
         </button>

@@ -9,6 +9,8 @@ import { Desk3D } from './Desk3D';
 import { Lamp3D } from './Lamp3D';
 import { ForegroundProps3D } from './ForegroundProps3D';
 import { Dust3D } from './Dust3D';
+import type { ProjectArchiveController } from '../../ProjectsScene/archiveController';
+import { projects, projectCategories } from '../../../data/projects';
 import { Workstation3D } from './Workstation3D';
 import { environment as settings } from './config';
 
@@ -19,6 +21,7 @@ interface Props {
   diskOverlay: RefObject<HTMLDivElement | null>;
   /** CRT emission; Workstation3D reads it each rendered frame. */
   crtGlow: { value: number };
+  archiveController: ProjectArchiveController;
   camera: RefObject<CameraState>;
   invalidateRef: RefObject<(() => void) | null>;
   tablet: boolean;
@@ -33,6 +36,7 @@ export default function HeroEnvironmentCanvas({
   screenOverlay,
   diskOverlay,
   crtGlow,
+  archiveController,
   camera,
   invalidateRef,
   tablet,
@@ -43,11 +47,33 @@ export default function HeroEnvironmentCanvas({
   const board = useRef<Group>(null);
   const deskPlane = useRef<Group>(null);
   const screenPlane = useRef<Group>(null);
-  const diskPlane = useRef<Group>(null);
+  const diskTargets = useMemo(
+    () =>
+      Array.from({ length: projects.length + projectCategories.length + 2 }, () => ({
+        current: null as Group | null,
+      })),
+    [],
+  );
+  const labelElements = useMemo(
+    () => diskTargets.map(() => ({ current: null as HTMLElement | null })),
+    [diskTargets],
+  );
+  useEffect(() => {
+    diskOverlay.current?.querySelectorAll<HTMLElement>('[data-archive-label]').forEach((el) => {
+      labelElements[Number(el.dataset.archiveLabel)].current = el;
+    });
+  }, [diskOverlay, labelElements]);
   // Every DOM layer that must read as part of the 3D room, projected by one camera.
   const planes = useMemo<RegisteredPlane[]>(
     () => [
       {
+        // No `visible` predicate here, deliberately. The board is a physical
+        // object in the room: what the camera can see decides whether it is
+        // drawn, never which chapter is active. Gating it on archive progress
+        // hid every paper, photo, string and pin the moment the scroll crossed
+        // into Scene 06 while the 3D cork kept rendering — the empty-corkboard
+        // bug. Overlap with the workstation is prevented spatially instead
+        // (see config.workstation / config.board).
         element: overlay,
         object: board,
         pixels: settings.board.pixels,
@@ -63,20 +89,22 @@ export default function HeroEnvironmentCanvas({
       },
       {
         element: screenOverlay,
+        visible: () => camera.current.archive > 0.6,
         object: screenPlane,
         pixels: settings.workstation.screen.pixels,
         size: settings.workstation.screen.size,
         face: 0,
       },
-      {
-        element: diskOverlay,
-        object: diskPlane,
-        pixels: settings.workstation.disks.pixels,
-        size: settings.workstation.disks.size,
+      ...diskTargets.map((object, index) => ({
+        element: labelElements[index],
+        visible: () => camera.current.archive > 0.6,
+        object,
+        pixels: [200, 76] as const,
+        size: [0.64, 0.2432] as const,
         face: 0,
-      },
+      })),
     ],
-    [overlay, deskOverlay, screenOverlay, diskOverlay],
+    [overlay, deskOverlay, screenOverlay, diskTargets, labelElements, camera],
   );
   const canvas = useRef<HTMLCanvasElement | null>(null);
   useEffect(
@@ -111,7 +139,9 @@ export default function HeroEnvironmentCanvas({
         <Lamp3D />
         <Workstation3D
           screenPlane={screenPlane}
-          diskPlane={diskPlane}
+          diskTargets={diskTargets}
+          controller={archiveController}
+          camera={camera}
           glow={crtGlow}
           shadows={!tablet}
         />

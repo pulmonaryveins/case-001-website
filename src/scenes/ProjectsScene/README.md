@@ -15,3 +15,13 @@ The 3D form of the machine lives with the rest of the room, in
 
 Content comes from `src/data/projects.ts` and `src/data/archive.ts`. Adding a
 record adds a disk; `featured` decides whether the scrolled tour stops at it.
+
+The desktop archive is physical geometry, not a DOM panel. `DiskArchive`
+provides semantic buttons projected separately onto the model's label faces.
+`CameraRig` chapter visibility prevents distant DOM surfaces covering the rack.
+The controller owns disk lifts as mutable values, sampled before projection;
+its animations belong to a stable scene context across breakpoint changes.
+
+Desktop retains the one demand-driven canvas. Mobile/no-WebGL uses the
+readable CRT panel followed by a two-column archive. Missing media stays an
+explicit placeholder. See `REVIEW.md` for the correction-pass report.

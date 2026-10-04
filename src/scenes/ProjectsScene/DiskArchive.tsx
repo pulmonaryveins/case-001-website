@@ -4,99 +4,59 @@ import { projectCategories } from '../../data/projects';
 import type { ProjectArchiveController } from './archiveController';
 import styles from './DiskArchive.module.css';
 
-/**
- * The physical half of the scene: a rugged archive case standing beside the
- * monitor, its disks split behind four typed category dividers.
- *
- * This is the full archive — every record has a disk here, including the ones
- * the scrolled tour never stops at. Selecting one is a manual choice and the
- * controller latches it, so the tour cannot pull the screen away underneath
- * the reader (see archiveController).
- */
+/** Semantic labels are projected independently onto their physical disk faces. */
 export function DiskArchive({ controller }: { controller: ProjectArchiveController }) {
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
-  const active = controller.projects[state.active];
-  const disks = controller.siblings(active.category);
-
   return (
-    <div className={styles.case} data-enabled={state.enabled} inert={!state.enabled}>
-      <span className={styles.handle} aria-hidden="true" />
-      <span className={styles.caseLabel} aria-hidden="true">
-        {copy.caseLabel}
+    <div className={styles.archive} inert={!state.enabled} aria-label={copy.disks}>
+      <span
+        data-archive-label={controller.projects.length + projectCategories.length}
+        className={styles.plate}
+      >
+        {copy.inventory}
       </span>
-
-      <nav className={styles.dividers} aria-label={copy.dividers}>
-        {projectCategories.map((category) => (
+      <span
+        data-archive-label={controller.projects.length + projectCategories.length + 1}
+        className={styles.plate}
+      >
+        {copy.inventory}
+        <small>{copy.caseLabel}</small>
+      </span>
+      {projectCategories.map((category, column) => (
+        <section key={category.id} className={styles.column}>
           <button
-            key={category.id}
             type="button"
+            data-archive-label={controller.projects.length + column}
             className={styles.divider}
-            aria-pressed={category.id === active.category}
+            aria-pressed={controller.active.category === category.id}
             onClick={() => controller.selectCategory(category.id)}
           >
             {category.label}
           </button>
-        ))}
-      </nav>
-
-      <ul
-        className={styles.disks}
-        aria-label={copy.disks}
-        onKeyDown={(event) => {
-          if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-          event.preventDefault();
-          controller.stepProject(event.key === 'ArrowDown' ? 1 : -1);
-        }}
-      >
-        {disks.map((index) => {
-          const project = controller.projects[index];
-          const [, number = ''] = project.archiveNumber.split('/');
-          return (
-            <li key={project.id}>
+          {controller.siblings(category.id).map((index) => {
+            const project = controller.projects[index];
+            return (
               <button
                 type="button"
+                key={project.id}
+                data-archive-label={index}
+                data-disk={index}
                 className={styles.disk}
-                aria-pressed={index === state.active}
+                aria-label={`${project.title}, ${project.archiveNumber}`}
+                aria-pressed={state.active === index}
+                onPointerEnter={() => controller.hover(index)}
+                onPointerLeave={() => controller.hover(-1)}
+                onFocus={() => controller.hover(index)}
+                onBlur={() => controller.hover(-1)}
                 onClick={() => controller.select(index)}
               >
-                <span className={styles.shutter} aria-hidden="true" />
-                <span className={styles.sticker}>
-                  <span className={styles.title}>{project.title}</span>
-                  <span className={styles.subtitle}>— {project.subtitle}</span>
-                </span>
-                <span className={styles.number} aria-hidden="true">
-                  {number.trim()}
-                </span>
+                <span>{project.title.replace(' Project ', ' ')}</span>
+                <small>{project.archiveNumber}</small>
               </button>
-            </li>
-          );
-        })}
-      </ul>
-
-      <div className={styles.pager}>
-        <button
-          type="button"
-          className={styles.step}
-          onClick={() => controller.stepProject(-1)}
-          disabled={disks.indexOf(state.active) <= 0}
-          aria-label={copy.previousProject}
-        >
-          <span aria-hidden="true">←</span>
-        </button>
-        <button
-          type="button"
-          className={styles.step}
-          onClick={() => controller.stepProject(1)}
-          disabled={disks.indexOf(state.active) >= disks.length - 1}
-          aria-label={copy.nextProject}
-        >
-          <span aria-hidden="true">→</span>
-        </button>
-      </div>
-
-      <p className={styles.note} aria-hidden="true">
-        {copy.caseNote}
-      </p>
+            );
+          })}
+        </section>
+      ))}
     </div>
   );
 }

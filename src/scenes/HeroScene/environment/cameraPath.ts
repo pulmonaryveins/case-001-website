@@ -54,19 +54,31 @@ export class CameraPath {
     const [t0, t1, t2, t3] = this.targets;
     const narrow = aspect < 1.2;
 
-    // Key 0 — approved Hero frame (unchanged).
+    // Key 0 — approved Hero frame. Portrait uses its own aim and offset
+    // (camera.narrow): it swings right so the board's left evidence clears the
+    // workstation, which no shared framing can do on a tall screen.
     const frameWidth = narrow ? shot.frame.narrowWidth : shot.frame.width;
     const heroDistance =
       fitDistance(frameWidth, shot.frame.height, aspect) * (1 + shot.pullback * (1 - push));
-    t0.set(...shot.target);
-    p0.set(shot.target[0] + shot.offset[0], shot.target[1] + shot.offset[1], heroDistance);
+    const aim = narrow ? shot.narrow.target : shot.target;
+    const lift = narrow ? shot.narrow.offset : shot.offset;
+    t0.set(...aim);
+    // Distance is measured from the target's own depth, so `camera.frame`
+    // describes a rectangle at whatever the Hero is aimed at. (Identical to the
+    // old behaviour while the target sat at z = 0; it matters now the board has
+    // moved back and the aim sits between the desk and the wall.)
+    p0.set(aim[0] + lift[0], aim[1] + lift[1], aim[2] + heroDistance);
 
     // Key 1 — gentle push toward the board, same look-at.
     t1.copy(t0);
     p1.lerpVectors(p0, t0, travel.push);
 
-    // Key 2 — crane down: camera lowers, gaze drops to the board's lower edge / desk back.
-    p2.set(...travel.mid.position);
+    // Key 2 — crane down: camera lowers, gaze drops to the board's lower edge /
+    // desk back. Authored in x/y only; depth is a fraction of the way from key 1
+    // to the desk arrival (set below, once key 3 is known) so it stays between
+    // its neighbours at every aspect.
+    const [midX, midY] = narrow ? travel.mid.narrow.position : travel.mid.position;
+    p2.set(midX, midY, 0);
     t2.set(...travel.mid.target);
 
     // Key 3 — above the dossier, pitched down, framed to the desk composition.
@@ -80,6 +92,7 @@ export class CameraPath {
       yaw,
       fitDistance(arrival.frame.width, arrival.frame.height, aspect),
     );
+    p2.z = p1.z + (p3.z - p1.z) * travel.mid.along;
 
     // Inspection lean — only reached through `inspect`, after the journey ends.
     const lean = narrow ? desk.inspect.narrow : desk.inspect;
@@ -95,7 +108,7 @@ export class CameraPath {
     // Archive — the same desk, further along it: a near-eye-level look at the
     // workstation. Only reached through `archive`, after the dossier chapter.
     const shot06 = narrow ? station.camera.narrow : station.camera;
-    this.archiveTarget.set(...station.camera.focus);
+    this.archiveTarget.set(...(narrow ? station.camera.narrow.focus : station.camera.focus));
     orbit(
       this.archivePosition,
       this.archiveTarget,

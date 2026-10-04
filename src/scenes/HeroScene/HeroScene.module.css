@@ -652,8 +652,8 @@
   height: 480px;
 }
 .scene[data-rendering='3d'] .diskPlane {
-  width: 420px;
-  height: 560px;
+  width: 0;
+  height: 0;
 }
 
 /* Fallback / mobile: the workstation is recomposed as a readable panel —

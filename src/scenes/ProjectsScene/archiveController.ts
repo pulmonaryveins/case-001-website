@@ -65,6 +65,34 @@ export class ProjectArchiveController {
   readonly power = { value: 0 };
   /** CRT emission, read by the 3D screen light each frame. */
   readonly glow = { value: 0 };
+  readonly diskLift: Record<number, number>;
+  private hovered = -1;
+  private diskTweens: gsap.core.Tween[] = [];
+  hover = (index: number) => {
+    this.hovered = index;
+    this.moveDisks();
+  };
+  private run: (action: () => void) => void = (action) => action();
+  private moveDisks() {
+    this.run(() => this.animateDisks());
+  }
+  private animateDisks() {
+    this.diskTweens.forEach((tween) => tween.kill());
+    const targets = Object.fromEntries(
+      this.projects.map((_, i) => [
+        i,
+        i === this.snapshot.active ? 0.08 : i === this.hovered ? 0.045 : 0,
+      ]),
+    );
+    this.diskTweens = [
+      gsap.to(this.diskLift, {
+        ...targets,
+        duration: this.reduced ? 0 : 0.28,
+        ease: 'power2.out',
+        onUpdate: () => this.invalidate?.(),
+      }),
+    ];
+  }
 
   private snapshot: ArchiveSnapshot = {
     boot: 'off',
@@ -89,11 +117,14 @@ export class ProjectArchiveController {
 
   constructor(projects: Project[], categories: readonly ProjectCategory[]) {
     this.projects = projects;
+    this.diskLift = Object.fromEntries(projects.map((_, index) => [index, 0]));
     this.featured = categories.flatMap((category) =>
-      projects.reduce<number[]>((found, project, index) => {
-        if (project.category === category && project.featured) found.push(index);
-        return found;
-      }, []),
+      projects
+        .reduce<number[]>((found, project, index) => {
+          if (project.category === category && project.featured) found.push(index);
+          return found;
+        }, [])
+        .slice(0, 3),
     );
     this.snapshot.active = this.featured[0] ?? 0;
   }
@@ -108,7 +139,11 @@ export class ProjectArchiveController {
   };
 
   /** Lets the controller ask the demand-driven renderer for a frame. */
-  connect(invalidate: () => void) {
+  connect(invalidate: () => void, context: gsap.Context) {
+    const action = context.add('archiveAction', (callback: () => void) => callback());
+    this.run = (callback) => {
+      action(callback);
+    };
     this.invalidate = invalidate;
     return () => {
       if (this.invalidate === invalidate) this.invalidate = null;
@@ -117,6 +152,12 @@ export class ProjectArchiveController {
 
   setReducedMotion(reduced: boolean) {
     this.reduced = reduced;
+    if (reduced) {
+      this.bootTimeline?.progress(1);
+      this.loadTimeline?.progress(1);
+      this.refreshTween?.progress(1);
+      this.moveDisks();
+    }
   }
 
   get active(): Project {
@@ -189,6 +230,9 @@ export class ProjectArchiveController {
   };
 
   setImage = (index: number) => {
+    this.run(() => this.changeImage(index));
+  };
+  private changeImage = (index: number) => {
     const count = this.active.images.length;
     if (!count) return;
     const target = clamp(index, count - 1);
@@ -221,12 +265,13 @@ export class ProjectArchiveController {
 
   /** Video records: nothing is fetched until this runs. */
   play = () => {
-    if (!this.active.video || this.snapshot.playing) return;
+    if (!this.active.video?.src || this.snapshot.playing) return;
     this.snapshot = { ...this.snapshot, playing: true };
     this.notify();
   };
 
   destroy() {
+    this.diskTweens.forEach((tween) => tween.kill());
     this.bootTimeline?.kill();
     this.loadTimeline?.kill();
     this.refreshTween?.kill();
@@ -240,6 +285,9 @@ export class ProjectArchiveController {
    * motion. Latched by `applyPower`, so reverse scrolling never replays it.
    */
   private boot() {
+    this.run(() => this.startBoot());
+  }
+  private startBoot() {
     this.bootTimeline?.kill();
     if (this.reduced) {
       this.glow.value = 1;
@@ -295,12 +343,18 @@ export class ProjectArchiveController {
    * so rapid clicking can never stack loads or strand `loading`.
    */
   private load(index: number) {
+    this.run(() => this.startLoad(index));
+  }
+  private startLoad(index: number) {
     const target = clamp(index, this.projects.length - 1);
     this.loadTimeline?.kill();
     this.refreshTween?.kill();
     this.refreshTween = null;
+    this.snapshot = { ...this.snapshot, refreshing: false };
 
     if (this.reduced) {
+      this.glow.value = 1;
+      this.invalidate?.();
       this.snapshot = {
         ...this.snapshot,
         active: target,
@@ -334,6 +388,7 @@ export class ProjectArchiveController {
   }
 
   private notify() {
+    this.moveDisks();
     this.listeners.forEach((listener) => listener());
   }
 }

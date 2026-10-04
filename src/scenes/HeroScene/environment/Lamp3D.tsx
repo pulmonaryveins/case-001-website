@@ -10,7 +10,11 @@ import { environment as settings } from './config';
 const SCALE = 1.35;
 // Shade axis leans this far from the light direction toward the viewer, so the
 // lit interior reads on screen. The spotlight itself still aims at the board.
-const VIEWER_LEAN = 0.42;
+// At 0.42 the axis sat 87 degrees off the Hero camera — the shade projected to
+// a bare line. 0.95 puts it ~59 degrees off: a clearly foreshortened ellipse
+// with the interior and the shade's depth both visible, without pointing the
+// lamp straight down the lens.
+const VIEWER_LEAN = 0.95;
 const VIEWER = new Vector3(1, 0.4, 15);
 
 // Bottom-to-top: LatheGeometry derives outward normals from this ordering.

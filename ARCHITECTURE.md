@@ -467,6 +467,39 @@ How the room works (read before extending it):
   straight to the DOM by a painter; React re-renders only when the integer
   page changes. Page order and count come from the data (About, Education,
   then one page per `experience` record).
+- **Desk geography — one room, one desk, three zones.** Left to right in world
+  x: the Scene 06 workstation is the LEFT work area (CRT -9.3..-5.5, rack
+  -5.1..-1.7), the evidence board is the CENTRE anchor on the wall behind, and
+  the dossier is the RIGHT work area (folder x 2.4..4.6) with closed case files
+  stacked behind it. These sides are final.
+- **`desk.plane.center` IS the dossier's position.** The interactive folder is
+  DOM composed inside that registered plane (DeskEvidence -> Dossier), so moving
+  the plane moves the real folder, its hit targets, its lighting and its shadow
+  together. `desk.focus` must track it: they were once left out of sync (plane
+  at x -3.6, focus at x 3.45), which put the folder on the LEFT under the rack
+  while the Profile camera flew to empty desk on the RIGHT. If you move one,
+  move both, and verify by reading the file rather than by memory.
+- **The board's DEPTH is what protects the workstation, not its height.** The
+  board's left notes sit directly above the rack in world x, and registered DOM
+  planes have no depth buffer, so anything overlapping the machine paints over
+  it. Pushing the board back moves those notes toward the vanishing point and
+  away from the near rack; lowering it does nothing for that (measured NDC
+  clearance: -0.106 at z -3.5, +0.032 at z -7.5, unchanged by Y). The board now
+  sits at `[0, 1.4, -7.5]`, ~7.7 units behind the desk's back edge, with the
+  wall following it automatically (Room.tsx).
+- **One lamp, aimed at what it lights, and angled so it reads as an object.**
+  `lamp.target` is a world point and goes stale silently whenever the board
+  moves — an old aim left the board lit from the wrong side (gradient -0.157,
+  brightest at the bottom-left). Re-solve it against the board's actual
+  position; it currently reads +0.066 toward the upper right with its darkest
+  corner at 0.81 and the dossier holding 0.718 against a 0.714 baseline.
+  Separately, `Lamp3D`'s `VIEWER_LEAN` tilts the shade off the light axis so its
+  lit interior faces the camera: at 0.42 the shade sat 87 degrees off the Hero
+  camera and projected to a bare white line. It is 0.95 now (~64 degrees).
+- **Verification reads config.ts, never a copy of it.** An earlier pass verified
+  a layout the code did not have, because prettier had reformatted `plane` to
+  multiple lines and a single-line edit silently no-opped while the harness used
+  hardcoded numbers. Parse the real file.
 - The archive workstation (Scene 06) continues the same pinned timeline and the
   same camera. `cameraState.archive` (0 = wherever the dossier left the camera,
   1 = settled on the workstation) blends toward one more key pose in
@@ -474,11 +507,15 @@ How the room works (read before extending it):
   only the physical form — CRT, base, keyboard, disk case — plus a cool point
   light whose intensity follows the controller's `glow`, which is what keeps the
   screen's light in step with the boot and each disk read.
-- The CRT screen and the disk case's face are two more `RegisteredPlane`s. All
-  archive text, every disk label, the links and the video player stay DOM on
-  those planes: readable, focusable, and never a WebGL texture. The planes carry
-  `pointer-events: none`; only the archive's own controls re-enable it, and the
-  screen's only after it has booted.
+- Scene 06 sits at the left end of the same desk. The CRT screen, each disk
+  label, each divider and the two inventory plates are independently registered
+  DOM planes. Physical disk motion runs before CameraRig projects those labels.
+  Chapter visibility gates projection and hit testing because DOM has no WebGL
+  depth buffer; the distant board retires during the archive travel.
+- The beige computer uses a shared rounded geometry, shared grain/materials,
+  and an instanced keyboard. The rack has stepped supports, dividers and one
+  thick disk per record. Warm workstation bounce fades with camera.archive;
+  the original lamp and earlier camera poses remain unchanged.
 - `ProjectsScene/archiveController.ts` owns the chapter's state the way
   `DossierPageController` owns the dossier's. Boot is latched so reverse
   scrolling never replays the power-on. Scroll and manual selection write the
@@ -494,3 +531,7 @@ How the room works (read before extending it):
 
 Build and review one milestone at a time. Do not scaffold or implement
 future scene content ahead of need.
+
+Scene 06 visual correction review: `src/scenes/ProjectsScene/REVIEW.md`.
+The current archive media, videos and external URLs are still unprovided;
+reserved slots must never be presented as supplied portfolio work.

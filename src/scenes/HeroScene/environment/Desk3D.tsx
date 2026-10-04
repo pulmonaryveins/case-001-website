@@ -34,8 +34,10 @@ function ProceduralWood() {
 export function Desk3D({ plane }: { plane: RefObject<Group | null> }) {
   return (
     <>
+      {/* One desk wide enough for both work areas: workstation at the left end
+          (from x -9.3), dossier at the right (to x 4.6). */}
       <mesh receiveShadow position={[0, DESK_TOP - 0.2, 3.4]}>
-        <boxGeometry args={[18, 0.4, 6.4]} />
+        <boxGeometry args={[26, 0.4, 6.4]} />
         {heroAssets.wood ? <ScannedWood src={heroAssets.wood} /> : <ProceduralWood />}
       </mesh>
       <group ref={plane} position={settings.desk.plane.center} rotation={[-Math.PI / 2, 0, 0]} />

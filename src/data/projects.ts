@@ -29,8 +29,7 @@ const pendingImages = (subject: string) => [
   { alt: `Placeholder for the third ${subject} preview frame`, label: 'Frame 03' },
 ];
 
-const PENDING =
-  '[Placeholder: one or two sentences describing this record. Replace before publishing.]';
+const PENDING = 'Reserved archive slot. Details and original media pending.';
 
 export const projects: Project[] = [
   // ---------------- DEVELOPMENT ----------------

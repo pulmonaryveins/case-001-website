@@ -37,6 +37,7 @@ import {
 } from '../AboutScene/dossierTimeline';
 import { addDossierPages } from '../AboutScene/dossierPagesTimeline';
 import { DossierPageController, pageCount, pageScrollLength } from '../AboutScene/pageController';
+import { readArchivePosition, saveArchivePosition } from '../ProjectsScene/archiveRestoration';
 import { ProjectArchiveController } from '../ProjectsScene/archiveController';
 import { addProjectArchive, archiveScrollLength } from '../ProjectsScene/archiveTimeline';
 import { ArchiveScreen } from '../ProjectsScene/ArchiveScreen';
@@ -148,7 +149,9 @@ export function HeroScene() {
   const screenOverlay = useRef<HTMLDivElement>(null);
   const diskOverlay = useRef<HTMLDivElement>(null);
   const invalidateRef = useRef<(() => void) | null>(null);
-  const introPlayed = useRef(false);
+  const [archivePosition] = useState(readArchivePosition);
+  const restoreArchive = useRef(archivePosition);
+  const introPlayed = useRef(archivePosition !== null);
   // Mutable camera state shared with the 3D rig; written only by GSAP (intro + scroll).
   const cameraState = useRef<CameraState>({ push: 0, travel: 0, inspect: 0, archive: 0 });
   const [environmentReady, setEnvironmentReady] = useState(false);
@@ -206,7 +209,9 @@ export function HeroScene() {
     arch.setReducedMotion(reducedMotion);
   }, [arch, reducedMotion]);
 
-  useEffect(() => arch.connect(() => invalidateRef.current?.()), [arch]);
+  useGSAPContext(scope, (context) => arch.connect(() => invalidateRef.current?.(), context), [
+    arch,
+  ]);
 
   useEffect(() => () => arch.destroy(), [arch]);
 
@@ -391,10 +396,36 @@ export function HeroScene() {
       reducedMotion,
       invalidate,
     );
+    // The board is NOT faded out here. DOM planes have no depth buffer, so the
+    // old fix hid the evidence to stop it painting over the workstation — which
+    // left an empty corkboard on screen. The workstation now stands at the far
+    // right of the desk instead, clear of both the board and the dossier in
+    // every frame of the move (see config.workstation), so the evidence simply
+    // leaves frame as the camera travels and is intact whenever it is in shot.
+    // CameraRig's own culling handles it once it is fully off screen.
     // Pin the timeline length to the scroll length so progress maps 1:1.
     stage.set({}, {}, journeyLength + dossierLength + pagesLength + archiveLength);
-    return reading.disconnect;
+    const rememberArchive = () =>
+      saveArchivePosition(cameraState.current.archive > 0.6 ? stage.time() : null);
+    window.addEventListener('beforeunload', rememberArchive);
+    return () => {
+      window.removeEventListener('beforeunload', rememberArchive);
+      reading.disconnect();
+    };
   }, [rendering, tablet, reducedMotion, pages, arch]);
+
+  // Browser restoration can precede the lazy canvas and pin spacer. Restore the
+  // archive once both are ready; this does not create another scroll controller.
+  useGSAPContext(scope, () => {
+    if (!ready || rendering !== '3d' || restoreArchive.current === null) return;
+    const position = restoreArchive.current;
+    restoreArchive.current = null;
+    saveArchivePosition(null);
+    ScrollTrigger.refresh();
+    window.scrollTo({ top: position * window.innerHeight, behavior: 'instant' });
+    ScrollTrigger.update();
+    invalidateRef.current?.();
+  }, [ready, rendering]);
 
   // Fallback (mobile / no WebGL): no pinned stage. The stacked file opens once
   // it is being read and closes again if the reader scrolls back above it.
@@ -464,6 +495,7 @@ export function HeroScene() {
                 screenOverlay={screenOverlay}
                 diskOverlay={diskOverlay}
                 crtGlow={arch.glow}
+                archiveController={arch}
                 camera={cameraState}
                 invalidateRef={invalidateRef}
                 tablet={tablet}
